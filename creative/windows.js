@@ -54,9 +54,9 @@ windows.Creative = {
     { type: 'image', path: 'item/chest_minecart', x: width - (29*1) + 6, y: height + 31, with: 'icon' },//supposed to be chest
     /* Search bar if on search tab */
     {
-      type: 'container', if: 'ctx.activeTab == 5', x: 20, y: 40, children: [
-        { type: 'text', value: L['Search Items'] },
-        { type: 'input', bb: [60, 40, 120, 80] },
+      type: 'container', if: 'ctx.activeTab == 5', x: 8, y: 44, children: [
+        { type: 'text', px: 11, value: L['Search Items'] },
+        { type: 'input', bb: [80, 35, 90, 10] },
       ]
     },
     /* Items in the body */
