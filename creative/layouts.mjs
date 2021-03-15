@@ -18,6 +18,7 @@ layouts.Creative = {
     'inventoryBotActiveTab': { path: 'gui/container/creative_inventory/tabs', slice: [0, 64 + 32, 28, 32], y: height + 28 },
     'tabSliderInactive': { path: 'gui/container/creative_inventory/tabs', slice: [232 + 12, 0, 12, 15] },
     'tabSliderActive': { path: 'gui/container/creative_inventory/tabs', slice: [232, 0, 12, 15] },
+    tabs: ['undefined', 'tabBuilding', 'tabDecoration', 'tabRedstone', 'tabTransport', 'tabSaved', 'tabSearch', 'tabMisc', 'tabFood', 'tabTools', 'tabCombat', 'tabBrewing', 'tabSurvival'],
     icon: { scale: 1.1, slice: [0, 0, 16, 16] },
   },
   children: [
@@ -66,7 +67,7 @@ layouts.Creative = {
       ]
     },
     {
-      type: 'container', if: 'ctx.activeTab != 12', x: 9, y: 141, children: [
+      type: 'container', x: 9, y: 142, children: [
         { type: 'itemgrid', containing: 'hotbarItems', width: 9, height: 1, padding: 2, size: 16 }
       ]
     },
@@ -78,17 +79,97 @@ layouts.Creative = {
           with: 'tabSliderActive',
           // if: 'ctx.items.length > (5*9)',
           bb: [0, 0, 12, 110],
-          // draw(ctx, self) {
-          //   this.scrollbarPosition = 0
-          //   const rowSize = 9
-          //   const rows = Math.ceil(ctx.items / rowSize)
-          //   ctx.cursorVertPosInContainer
-          //   // ctx.drawImage(ctx.tabSliderActive, 0, 0) // TODO: scrolling
-          // }
         },
         // { type: 'image', if: 'ctx.items.length <= (5*9)', x: 0, y: 0, with: 'tabSliderInactive' }
       ]
+    },
+    /* Survival Inventory */
+    {
+      type: 'container', if: 'ctx.activeTab == 12', children: [
+        { type: 'itemgrid', containing: 'shieldItem', x: 35, y: 50, width: 1, height: 1 },
+        { type: 'itemgrid', containing: 'headItem', x: 54, y: 36, width: 1, height: 1 },
+        { type: 'itemgrid', containing: 'chestItem', x: 54, y: 63, width: 1, height: 1 },
+        { type: 'itemgrid', containing: 'legItem', x: 108, y: 36, width: 1, height: 1 },
+        { type: 'itemgrid', containing: 'feetItem', x: 108, y: 63, width: 1, height: 1 },
+        {
+          type: 'container', x: 9, y: 84, children: [
+            { type: 'itemgrid', containing: 'survivalItems', width: 9, height: 3, padding: 2, size: 16 },
+            { id: 'survivalClearBtn', type: 'button', x: 164, y: 58, slice: [0, 0, 16, 16], h: 16, w: 16, tip: 'Clear Inventory', onClick: [] }
+          ]
+        }
+      ]
     }
+  ]
+}
+
+layouts.BrewingStand = {
+  using: {
+    'brewing_stand': { path: 'gui/container/brewing_stand', slice: [0, 0, 176, 164] },
+    'fuel': { path: 'gui/container/brewing_stand', slice: [176, 29, null, 4] },
+    'arrow': { path: 'gui/container/brewing_stand', slice: [176, 0, 9, null] },
+    'bubbles': { path: 'gui/container/brewing_stand', slice: [185, 0, 12, null] },
+    'bubbleHeights': [29, 24, 20, 16, 11, 6, 0]
+  },
+  type: 'image',
+  with: 'brewing_stand',
+  children: [
+    { type: 'itemgrid', containing: 'blazePowderItem', x: 17, y: 17 },
+    { type: 'itemgrid', containing: 'ingredientItem', x: 79, y: 17 },
+    { type: 'itemgrid', containing: 'bottleItemA', x: 56, y: 51 },
+    { type: 'itemgrid', containing: 'bottleItemB', x: 79, y: 58 },
+    { type: 'itemgrid', containing: 'bottleItemC', x: 102, y: 51 },
+    {
+      type: 'container', if: 'ctx.brewingTicks > 0', children: [
+        {
+          type: 'item', with: 'fuel', x: 60, y: 44,
+          draw(ctx, self, [x, y]) {
+            const width = Math.max(0, Math.min((18 * ctx.fuelRemaining + 20 - 1) / 20, 18))
+            console.log('drawing',[self.slice[0], self.slice[1], width, self.slice[3]])
+            ctx.drawImage(self, x, y, [self.slice[0], self.slice[1], width, self.slice[3]])
+          }
+        },
+        {
+          type: 'item', with: 'arrow', x: 97, y: 16,
+          draw(ctx, self, [x, y]) {
+            const height = (28.0 * (1.0 - ctx.brewingTicks / 400.0))
+            ctx.drawImage(self, x, y, [self.slice[0], 0, self.slice[2], height])
+          }
+        },
+        {
+          type: 'image', with: 'bubbles', x: 63, y: 14,
+          draw(ctx, self, [x, y]) {
+            // console.log('draw', ctx.brewingTicks / 2 % 7, ctx.bubbleHeights)
+            const height = ctx.bubbleHeights[Math.floor(ctx.brewingTicks / 2 % 7)]
+            // const height = 6
+            ctx.drawImage(self, x, y + 29 - height, [self.slice[0], 29 - height, self.slice[2], height])
+            // ctx.drawImage(self, x, y + height, [self.slice[0], height, self.slice[2], 29 - height])
+
+            // console.log([self.slice[0], 29 - height, self.slice[2], height])
+          }
+        },
+      ]
+    },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 },
+  ]
+}
+
+layouts.Anvil = {
+  using: {
+    'anvil': { path: 'gui/container/anvil', slice: [0, 0, 176, 166] },
+    'writable': { path: 'gui/container/anvil', slice: [0, 166, 110, 16] },
+    'unwritable': { path: 'gui/container/anvil', slice: [0, 16 + 166, 110, 16] },
+  },
+  type: 'image',
+  with: 'anvil',
+  children: [
+    { type: 'image', with: 'writable', x: 59, y: 20 },
+    { type: 'input', id: 'renameTextInput', variable: 'renameText', bb: [60, 21, 108, 14] },
+    { type: 'itemgrid', containing: 'inputItemsA', x: 27, y: 47, width: 1, height: 1 },
+    { type: 'itemgrid', containing: 'inputItemsB', x: 76, y: 47, width: 1, height: 1 },
+    { type: 'itemgrid', containing: 'resultItems', x: 134, y: 47, width: 1, height: 1 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 },
   ]
 }
 

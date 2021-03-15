@@ -25,6 +25,9 @@ class CanvasEventManager {
     canvas.onmousemove = this.onCursorMove
     canvas.onmousedown = this.onCursorClick
     canvas.onmouseup = this.onCursorRelease
+    canvas.tabIndex = 1 // Allow us to capture key presses
+    canvas.style.outline = "none" // remove the outline
+    canvas.addEventListener('keydown', this.onKeyDown, { passive: true })
   }
 
   setScale(scale) {
@@ -65,6 +68,11 @@ class CanvasEventManager {
     const pos = this.getMousePos(canvas, evt);
     const { x, y } = this.getCanvasCoords(this.ctx, pos.x, pos.y)
     this.children.forEach(e => e.onCanvasMouseUp(x, y))
+  }
+
+  onKeyDown = (evt) => {
+    // console.log('Got key down', evt)
+    this.children.forEach(e => e.onCanvasKeyDown(evt.key, evt.code))
   }
 
   clear() {
@@ -140,16 +148,24 @@ class CanvasWindow {
     this.drawCtx.strokeRect(...aroundBB)
   }
 
-  drawInput(obj) {
-    // this.drawCtx.fillStyle = "#000000"
+  drawInput(obj, [x, y, mx], text) {
+    this.drawCtx.fillStyle = "#FFFFFF"
     // this.drawBox(obj.bb)
     // this.drawCtx.strokeRect(...obj.bb)
-
+    const measured = this.drawCtx.measureText(text)
+    // console.log('Measured', measured)
+    let lPadding = obj.horizontalPadding ?? 2
+    let rPadding = obj.horizontalPadding ?? 4
+    const fontHeight = measured.fontBoundingBoxAscent + measured.fontBoundingBoxDescent
+    // lPadding = obj.width / mx
+    this.drawCtx.fillText(text, x + lPadding, fontHeight + y, mx - rPadding)
   }
 }
 
 class InventoryWindow extends CanvasWindow {
   floatingItem
+  activeInput
+
   needsUpdate = true
   sensitiveRegions = new Map()
   boxHighlights = []
@@ -164,6 +180,8 @@ class InventoryWindow extends CanvasWindow {
   }
 
   onCanvasMouseDown(x, y) {
+    this.activeInput = null
+
     for (const [bb, id, type, handler, data] of this.sensitiveRegions.values()) {
       if (bb.contains(x, y) && type.includes('click')) {
         console.log('click in', bb)
@@ -177,6 +195,26 @@ class InventoryWindow extends CanvasWindow {
   onCanvasMouseUp() {
     this.downListeners.forEach(([handler, id]) => handler(id, 'release', [this.can.lastCursorPosition.x, this.can.lastCursorPosition.y]))
     this.downListeners = []
+  }
+
+  $(elementId) {
+    return this['$' + elementId]
+  }
+
+  onCanvasKeyDown(key, code) {
+    if (this.activeInput && this.$(this.activeInput)) {
+      const varId = this.$(this.activeInput).variable
+      if (key.length == 1) { // detect character, better way to do this?
+        this[varId] += key
+      } else if (code == 'Backspace') {
+        this[varId] = this[varId].slice(0, -1)
+      } else if (code == 'Escape') {
+        this.activeInput = null
+        return
+      }
+      this.onInputBoxInteract(this.activeInput, 'press', [])
+      this.needsUpdate = true
+    }
   }
 
   registerSensitive(regionBB, type, id, handler, data) {
@@ -226,6 +264,8 @@ class InventoryWindow extends CanvasWindow {
       const { x, y } = this.can.lastCursorPosition
       this.drawItem(null, x - 8, y - 8)
     }
+
+    this.drawCtx.fillText(`Pos: x: ${this.can.lastCursorPosition.x} y: ${this.can.lastCursorPosition.y}`, 0, 10)
   }
 
   index = 0
@@ -235,6 +275,7 @@ class InventoryWindow extends CanvasWindow {
     for (const key in obj) {
       const val = obj[key]
       if (!val.id) val.id = this.index++
+      this['$' + val.id] = val
       let _with = val.with
       if (val.using) {
         Object.assign(this, val.using)
@@ -256,8 +297,8 @@ class InventoryWindow extends CanvasWindow {
       if (val['if']) {
         const ctx = this;
         if (val['if'] instanceof Function) {
-          if (val['if']() != true) continue
-          console.log('val', val, val['if'](), 'is true')
+          if (val['if'](ctx, val) != true) continue
+          // console.log('val', val, val['if'](), 'is true')
         } else if (eval(val['if']) != true) {
           continue
           // console.log('val',val,val.if,eval(val['if']),'is true')
@@ -265,13 +306,16 @@ class InventoryWindow extends CanvasWindow {
       }
 
       if (val.draw) {
-        val.draw(this, val)
+        val.draw(this, val, [ val.x + xoff, val.y + yoff ])
       } else if (val.type == 'image') {
         this.drawImage(val, val.x + xoff, val.y + yoff, val.slice, val.scale)
       } else if (val.type == 'input') {
         // TODO
-        this.registerSensitive(new BB(...val.bb), 'hover+click', obj.id, this.onInputBoxInteract)
-        // this.drawInput(val)
+        const bb = [...val.bb]
+        bb[0] += xoff
+        bb[1] += yoff
+        this.registerSensitive(new BB(...bb), 'hover+click', val.id, this.onInputBoxInteract)
+        this.drawInput(val, bb, this[val.variable])
       } else if (val.type == 'text') {
         this.drawText(val, val.x + xoff, val.y + yoff)
       } else if (val.type == 'container') {
@@ -279,11 +323,14 @@ class InventoryWindow extends CanvasWindow {
         this.renderLayout(val.children, val.x + xoff, val.y + yoff)
       } else if (val.type == 'itemgrid') {
         var i = 0;
+        val.size ??= 16
+        val.padding ??= 2
         for (var _x = 0; _x < val.width; _x++) {
           for (var _y = 0; _y < val.height; _y++) {
-            const bb = [(_x * val.size) + xoff + (_x * val.padding), (_y * val.size) + yoff + (_y * val.padding), val.size, val.size]
-            // this.drawBox()
+            const bb = [val.x + (_x * val.size) + xoff + (_x * val.padding), val.y + (_y * val.size) + yoff + (_y * val.padding), val.size, val.size]
+            // this.drawBox(bb)
             this.drawItem(this[val.containing][i], bb[0], bb[1])
+            // console.log('d', bb)
             this.registerSensitive(new BB(...bb), 'hover+click', val.id, this.onItemEvent)
             i++;
           }
@@ -300,17 +347,19 @@ class InventoryWindow extends CanvasWindow {
         } else {
           this.drawImage(val, val.x + xoff, val.y + yoff, val.slice, val.scale)
         }
+      } else if (val.type == 'box') {
+        this.drawBox([ val.x + xoff, val.y + yoff, val.h ?? 10, val.w ?? 10 ])
       }
 
       if (val.tip) {
         console.assert(val.slice, 'need a slice bb for sensitive region', val)
 
-        const bb = [val.x, val.y, val.slice[2], val.slice[3]]
+        const bb = [val.x + xoff, val.y + yoff, val.slice[2], val.slice[3]]
         // this.drawBox(bb)
         this.registerSensitive(new BB(...bb), 'hover', val.id, this.onTooltipEvent)
       }
       if (val.onClick) {
-        const bb = [val.x, val.y, val.slice[2], val.slice[3]]
+        const bb = [val.x, val.y, val.h ?? val.slice[2], val.w ?? val.slice[3]]
         this.registerSensitive(new BB(...bb), 'click', val.id, this.onClickEvent)
       }
       // console.log('REC')
@@ -322,7 +371,10 @@ class InventoryWindow extends CanvasWindow {
   }
 
   onInputBoxInteract = (id, type, pos) => {
-
+    console.log('input box interact', id, type, pos)
+    if (type == 'click') {
+      this.activeInput = id
+    }
   }
 
   onItemEvent = (id, type, pos) => {
@@ -362,7 +414,13 @@ class CreativeInventory extends InventoryWindow {
 
   hotbarItems = []
   bodyItems = []
-  tabs = [ 'undefined', 'tabBuilding', 'tabDecoration', 'tabRedstone', 'tabTransport', 'tabSaved', 'tabSearch', 'tabMisc', 'tabFood', 'tabTools', 'tabCombat', 'tabBrewing', 'tabSurvival' ]
+  survivalItems = []
+
+  shieldItem = []
+  headItem = []
+  chestItem = []
+  legItem = []
+  feetItem = []
 
   constructor(canMan, ctx) {
     super(canMan)
@@ -378,12 +436,62 @@ class CreativeInventory extends InventoryWindow {
   }
 }
 
+class BrewingStandInventory extends InventoryWindow {
+  windowId = 'BrewingStand'
+  layout = [ globalThis.layouts.BrewingStand ]
+
+  blazePowderItem = []
+  ingredientItem = []
+  bottleItemA = []
+  bottleItemB = []
+  bottleItemC = []
+
+  inventoryItems = []
+  hotbarItems = []
+
+  brewingTicks = 20*20
+  fuelRemaining = 20
+
+  constructor(...args) {
+    super(...args)
+
+    setInterval(() => {
+      this.brewingTicks--
+      this.fuelRemaining--
+      if (this.fuelRemaining < 0) this.fuelRemaining = 20
+      this.needsUpdate = true
+    }, 50)
+  }
+}
+
+class AnvilInventory extends InventoryWindow {
+  windowId = 'Anvil'
+  layout = [ globalThis.layouts.Anvil ]
+
+  inputItemsA = []
+  inputItemsB = []
+  resultItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  renameText = 'Hello world!'
+}
+
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
 canvasManager.setScale(4)
-window.creative = new CreativeInventory(canvasManager, {
+// window.creative = new CreativeInventory(canvasManager, {
+//   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
+// })
+
+// window.creative = new BrewingStandInventory(canvasManager, {
+//   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
+// })
+
+window.creative = new AnvilInventory(canvasManager, {
   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 })
+
 setTimeout(() => {
   canvasManager.startRendering()
   console.log('Rendering!')
