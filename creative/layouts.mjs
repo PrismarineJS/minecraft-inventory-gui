@@ -4,9 +4,9 @@ const L = {
 
 // 28,32 - tabs.png
 
-var windows = {}
+globalThis.layouts = {}
 var height = 136; var width = 195;
-windows.Creative = {
+layouts.Creative = {
   // type: 'image',
   using: { // reusable constants + allow for assets to be easily preloaded without recusing
     'tab_inventory': { path: 'gui/container/creative_inventory/tab_inventory' },
@@ -67,7 +67,7 @@ windows.Creative = {
     },
     {
       type: 'container', if: 'ctx.activeTab != 12', x: 9, y: 141, children: [
-        { type: 'itemgrid', containing: 'hotbar', width: 9, height: 1, padding: 2, size: 16 }
+        { type: 'itemgrid', containing: 'hotbarItems', width: 9, height: 1, padding: 2, size: 16 }
       ]
     },
     /* Scrollbar */

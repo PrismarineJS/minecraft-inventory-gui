@@ -15,8 +15,8 @@ const images = [
   'item/glass_bottle',
   'item/chest_minecart',
 ]
-for (const win in windows) {
-  const val = windows[win]
+for (const win in globalThis.layouts) {
+  const val = globalThis.layouts[win]
   for (const key in val.using) {
     const path = val.using[key].path
     if (path && !images.includes(path)) {
@@ -62,7 +62,7 @@ function loadAllImagesNode() {
   }
 }
 
-function getImage(options) {
+export function getImage(options) {
   let path = options.path
 
   if (!path && options.with.startsWith('item.')) { // Temp to load image icons
@@ -81,5 +81,5 @@ if (typeof window !== 'undefined') {
   loadAllImagesWeb()
 } else {
   loadAllImagesNode()
-  module.exports = { getImage }
+  // module.exports = { getImage }
 }
