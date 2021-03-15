@@ -1,8 +1,8 @@
 if (typeof module !== 'undefined') {
   // var { createCanvas } = require('canvas')
   // var fs = require('fs')
-  const { getImage } = require('./util')
-  var { windows } = require('./windows')
+  const { getImage } = require('./util.mjs')
+  var { windows } = require('./layouts.mjs')
 } else {
 
 }
@@ -82,8 +82,6 @@ class InvWindow {
 
     // this.drawCtx.fillStyle = "#000000";
     // this.drawCtx.fillRect (x, y, 4, 4)
-
-
   }
 
   tickClick(evt) {
@@ -110,6 +108,11 @@ class InvWindow {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     this.index = 0
     this.render(this.renderWindow)
+    this.renderOverlays()
+  }
+
+  renderOverlays() {
+
   }
 
   render(obj, xoff = 0, yoff = 0) {
@@ -306,6 +309,10 @@ class CreativeWindow extends InvWindow {
 
   }
 
+  renderOverlays() {
+    this.drawItem(null, this.lastX - 8, this.lastY - 8)
+  }
+
   onClick = (id, type, pos) => {
     console.log('Clicked', id, '!')
     this.activeTab = this.tabs.indexOf(id)
@@ -330,6 +337,7 @@ canvas.onclick = (evt) => {
   // console.log('mouse move', evt)
   creative.tickClick(evt)
 }
+
 
 function getMousePos(canvas, evt) {
   var rect = canvas.getBoundingClientRect();
