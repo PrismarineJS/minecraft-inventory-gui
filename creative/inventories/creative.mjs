@@ -276,22 +276,22 @@ class InventoryWindow extends CanvasWindow {
       const val = obj[key]
       if (!val.id) val.id = this.index++
       this['$' + val.id] = val
-      let _with = val.with
-      if (val.using) {
-        Object.assign(this, val.using)
+      let _using = val.using
+      if (val.with) {
+        Object.assign(this, val.with)
       }
       val.x ??= 0
       val.y ??= 0
-      if (_with) {
-        if (val.with instanceof Function) {
-          _with = val.with(this, val)
+      if (_using) {
+        if (val.using instanceof Function) {
+          _using = val.using(this, val)
         }
-        if (_with.includes('.')) {
-          const [key, entry] = _with.split('.')
-          Object.assign(val, globalThis.layouts[key].using?.[entry])
+        if (_using.includes('.')) {
+          const [key, entry] = _using.split('.')
+          Object.assign(val, globalThis.layouts[key].with?.[entry])
         } else {
-          // console.log('assign', val, this.windows[this.windowId].using[_with])
-          Object.assign(val, globalThis.layouts[this.windowId].using[_with])
+          // console.log('assign', val, this.windows[this.windowId].with[_using])
+          Object.assign(val, globalThis.layouts[this.windowId].with[_using])
         }
       }
       if (val['if']) {

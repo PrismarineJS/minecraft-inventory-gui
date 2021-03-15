@@ -17,8 +17,8 @@ const images = [
 ]
 for (const win in globalThis.layouts) {
   const val = globalThis.layouts[win]
-  for (const key in val.using) {
-    const path = val.using[key].path
+  for (const key in val.with) {
+    const path = val.with[key].path
     if (path && !images.includes(path)) {
       images.push(path);
     }

@@ -8,7 +8,7 @@ globalThis.layouts = {}
 var height = 136; var width = 195;
 layouts.Creative = {
   // type: 'image',
-  using: { // reusable constants + allow for assets to be easily preloaded without recusing
+  with: { // reusable constants + allow for assets to be easily preloaded without recusing
     'tab_inventory': { path: 'gui/container/creative_inventory/tab_inventory' },
     'tab_items': { path: 'gui/container/creative_inventory/tab_items' },
     'tab_item_search': { path: 'gui/container/creative_inventory/tab_item_search' },
@@ -23,36 +23,36 @@ layouts.Creative = {
   },
   children: [
     /* Top bar */
-    { type: 'image', id: 'tabBuilding', with: (ctx) => ctx.activeTab == 1 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 0, y: 0, tip: 'Building blocks', onClick: [] },
-    { type: 'image', id: 'tabDecoration', with: (ctx) => ctx.activeTab == 2 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 1, y: 0, tip: 'Decoration blocks', onClick: [] },
-    { type: 'image', id: 'tabRedstone', with: (ctx) => ctx.activeTab == 3 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 2, y: 0, tip: 'Redstone', onClick: [] },
-    { type: 'image', id: 'tabTransport', with: (ctx) => ctx.activeTab == 4 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 3, y: 0, tip: 'Transportation', onClick: [] },
-    { type: 'image', id: 'tabSaved', with: (ctx) => ctx.activeTab == 5 ? 'inventoryTabActive' : 'inventoryTab', x: width - 29 * 2, y: 0, tip: 'Saved Inventories', onClick: [] },
-    { type: 'image', id: 'tabSearch', with: (ctx) => ctx.activeTab == 6 ? 'inventoryTabActive' : 'inventoryTab', x: width - 29 * 1, y: 0, tip: 'Search', onClick: [] },
+    { type: 'image', id: 'tabBuilding', using: (ctx) => ctx.activeTab == 1 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 0, y: 0, tip: 'Building blocks', onClick: [] },
+    { type: 'image', id: 'tabDecoration', using: (ctx) => ctx.activeTab == 2 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 1, y: 0, tip: 'Decoration blocks', onClick: [] },
+    { type: 'image', id: 'tabRedstone', using: (ctx) => ctx.activeTab == 3 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 2, y: 0, tip: 'Redstone', onClick: [] },
+    { type: 'image', id: 'tabTransport', using: (ctx) => ctx.activeTab == 4 ? 'inventoryTabActive' : 'inventoryTab', x: 29 * 3, y: 0, tip: 'Transportation', onClick: [] },
+    { type: 'image', id: 'tabSaved', using: (ctx) => ctx.activeTab == 5 ? 'inventoryTabActive' : 'inventoryTab', x: width - 29 * 2, y: 0, tip: 'Saved Inventories', onClick: [] },
+    { type: 'image', id: 'tabSearch', using: (ctx) => ctx.activeTab == 6 ? 'inventoryTabActive' : 'inventoryTab', x: width - 29 * 1, y: 0, tip: 'Search', onClick: [] },
     /* Bottom bar */
-    { type: 'image', id: 'tabMisc', with: (ctx) => ctx.activeTab == 7 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 0, tip: 'Miscellaneous', onClick: [] },
-    { type: 'image', id: 'tabFood', with: (ctx) => ctx.activeTab == 8 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 1, tip: 'Foodstuffs', onClick: [] },
-    { type: 'image', id: 'tabTools', with: (ctx) => ctx.activeTab == 9 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 2, tip: 'Tools', onClick: [] },
-    { type: 'image', id: 'tabCombat', with: (ctx) => ctx.activeTab == 10 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 3, tip: 'Combat', onClick: [] },
-    { type: 'image', id: 'tabBrewing', with: (ctx) => ctx.activeTab == 11 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 4, tip: 'Brewing', onClick: [] },
-    { type: 'image', id: 'tabSurvival', with: (ctx) => ctx.activeTab == 12 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: width - 28, tip: 'Survival', onClick: [] },
+    { type: 'image', id: 'tabMisc', using: (ctx) => ctx.activeTab == 7 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 0, tip: 'Miscellaneous', onClick: [] },
+    { type: 'image', id: 'tabFood', using: (ctx) => ctx.activeTab == 8 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 1, tip: 'Foodstuffs', onClick: [] },
+    { type: 'image', id: 'tabTools', using: (ctx) => ctx.activeTab == 9 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 2, tip: 'Tools', onClick: [] },
+    { type: 'image', id: 'tabCombat', using: (ctx) => ctx.activeTab == 10 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 3, tip: 'Combat', onClick: [] },
+    { type: 'image', id: 'tabBrewing', using: (ctx) => ctx.activeTab == 11 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: 29 * 4, tip: 'Brewing', onClick: [] },
+    { type: 'image', id: 'tabSurvival', using: (ctx) => ctx.activeTab == 12 ? 'inventoryBotActiveTab' : 'inventoryBotTab', x: width - 28, tip: 'Survival', onClick: [] },
     /* The actual body */
-    { type: 'image', with: (ctx) => ctx.activeTab == 6 ? 'tab_item_search' : (ctx.activeTab == 12 ? 'tab_inventory' : 'tab_items'), y: 30 },
+    { type: 'image', using: (ctx) => ctx.activeTab == 6 ? 'tab_item_search' : (ctx.activeTab == 12 ? 'tab_inventory' : 'tab_items'), y: 30 },
 
     /* Tab Icons */
-    { type: 'image', path: 'item/brick', x: 5, y: 8, with: 'icon' },
-    { type: 'image', path: 'block/brain_coral', x: (29 * 1) + 5, y: 8, with: 'icon' },//supposed to be bush or something, the cant find icon
-    { type: 'image', path: 'item/redstone', x: (29 * 2) + 5, y: 8, with: 'icon' },
-    { type: 'image', path: 'block/powered_rail_on', x: (29 * 3) + 5, y: 8, with: 'icon' },
-    { type: 'image', path: 'block/bookshelf', x: width - (29 * 2) + 5, y: 8, with: 'icon' },
-    { type: 'image', path: 'item/compass_00', x: width - (29 * 1) + 5, y: 8, with: 'icon' },
+    { type: 'image', path: 'item/brick', x: 5, y: 8, using: 'icon' },
+    { type: 'image', path: 'block/brain_coral', x: (29 * 1) + 5, y: 8, using: 'icon' },//supposed to be bush or something, the cant find icon
+    { type: 'image', path: 'item/redstone', x: (29 * 2) + 5, y: 8, using: 'icon' },
+    { type: 'image', path: 'block/powered_rail_on', x: (29 * 3) + 5, y: 8, using: 'icon' },
+    { type: 'image', path: 'block/bookshelf', x: width - (29 * 2) + 5, y: 8, using: 'icon' },
+    { type: 'image', path: 'item/compass_00', x: width - (29 * 1) + 5, y: 8, using: 'icon' },
 
-    { type: 'image', path: 'item/lava_bucket', x: (29 * 0) + 5, y: height + 31, with: 'icon' },
-    { type: 'image', path: 'item/apple', x: (29 * 1) + 5, y: height + 31, with: 'icon' },
-    { type: 'image', path: 'item/iron_axe', x: (29 * 2) + 5, y: height + 31, with: 'icon' },
-    { type: 'image', path: 'item/golden_sword', x: (29 * 3) + 5, y: height + 31, with: 'icon' },
-    { type: 'image', path: 'item/glass_bottle', x: (29 * 4) + 5, y: height + 31, with: 'icon' },//supposed to be water bottle
-    { type: 'image', path: 'item/chest_minecart', x: width - (29 * 1) + 6, y: height + 31, with: 'icon' },//supposed to be chest
+    { type: 'image', path: 'item/lava_bucket', x: (29 * 0) + 5, y: height + 31, using: 'icon' },
+    { type: 'image', path: 'item/apple', x: (29 * 1) + 5, y: height + 31, using: 'icon' },
+    { type: 'image', path: 'item/iron_axe', x: (29 * 2) + 5, y: height + 31, using: 'icon' },
+    { type: 'image', path: 'item/golden_sword', x: (29 * 3) + 5, y: height + 31, using: 'icon' },
+    { type: 'image', path: 'item/glass_bottle', x: (29 * 4) + 5, y: height + 31, using: 'icon' },//supposed to be water bottle
+    { type: 'image', path: 'item/chest_minecart', x: width - (29 * 1) + 6, y: height + 31, using: 'icon' },//supposed to be chest
     /* Search bar if on search tab */
     {
       type: 'container', if: 'ctx.activeTab == 6', x: 8, y: 44, children: [
@@ -76,11 +76,11 @@ layouts.Creative = {
       type: 'container', if: 'ctx.activeTab != 12', x: 175, y: 48, children: [
         {
           type: 'scrollbar', id: 'scrollbar',
-          with: 'tabSliderActive',
+          using: 'tabSliderActive',
           // if: 'ctx.items.length > (5*9)',
           bb: [0, 0, 12, 110],
         },
-        // { type: 'image', if: 'ctx.items.length <= (5*9)', x: 0, y: 0, with: 'tabSliderInactive' }
+        // { type: 'image', if: 'ctx.items.length <= (5*9)', x: 0, y: 0, using: 'tabSliderInactive' }
       ]
     },
     /* Survival Inventory */
@@ -103,7 +103,7 @@ layouts.Creative = {
 }
 
 layouts.BrewingStand = {
-  using: {
+  with: {
     'brewing_stand': { path: 'gui/container/brewing_stand', slice: [0, 0, 176, 164] },
     'fuel': { path: 'gui/container/brewing_stand', slice: [176, 29, null, 4] },
     'arrow': { path: 'gui/container/brewing_stand', slice: [176, 0, 9, null] },
@@ -111,7 +111,7 @@ layouts.BrewingStand = {
     'bubbleHeights': [29, 24, 20, 16, 11, 6, 0]
   },
   type: 'image',
-  with: 'brewing_stand',
+  using: 'brewing_stand',
   children: [
     { type: 'itemgrid', containing: 'blazePowderItem', x: 17, y: 17 },
     { type: 'itemgrid', containing: 'ingredientItem', x: 79, y: 17 },
@@ -121,7 +121,7 @@ layouts.BrewingStand = {
     {
       type: 'container', if: 'ctx.brewingTicks > 0', children: [
         {
-          type: 'item', with: 'fuel', x: 60, y: 44,
+          type: 'item', using: 'fuel', x: 60, y: 44,
           draw(ctx, self, [x, y]) {
             const width = Math.max(0, Math.min((18 * ctx.fuelRemaining + 20 - 1) / 20, 18))
             console.log('drawing',[self.slice[0], self.slice[1], width, self.slice[3]])
@@ -129,14 +129,14 @@ layouts.BrewingStand = {
           }
         },
         {
-          type: 'item', with: 'arrow', x: 97, y: 16,
+          type: 'item', using: 'arrow', x: 97, y: 16,
           draw(ctx, self, [x, y]) {
             const height = (28.0 * (1.0 - ctx.brewingTicks / 400.0))
             ctx.drawImage(self, x, y, [self.slice[0], 0, self.slice[2], height])
           }
         },
         {
-          type: 'image', with: 'bubbles', x: 63, y: 14,
+          type: 'image', using: 'bubbles', x: 63, y: 14,
           draw(ctx, self, [x, y]) {
             // console.log('draw', ctx.brewingTicks / 2 % 7, ctx.bubbleHeights)
             const height = ctx.bubbleHeights[Math.floor(ctx.brewingTicks / 2 % 7)]
@@ -155,15 +155,15 @@ layouts.BrewingStand = {
 }
 
 layouts.Anvil = {
-  using: {
+  with: {
     'anvil': { path: 'gui/container/anvil', slice: [0, 0, 176, 166] },
     'writable': { path: 'gui/container/anvil', slice: [0, 166, 110, 16] },
     'unwritable': { path: 'gui/container/anvil', slice: [0, 16 + 166, 110, 16] },
   },
   type: 'image',
-  with: 'anvil',
+  using: 'anvil',
   children: [
-    { type: 'image', with: 'writable', x: 59, y: 20 },
+    { type: 'image', using: 'writable', x: 59, y: 20 },
     { type: 'input', id: 'renameTextInput', variable: 'renameText', bb: [60, 21, 108, 14] },
     { type: 'itemgrid', containing: 'inputItemsA', x: 27, y: 47, width: 1, height: 1 },
     { type: 'itemgrid', containing: 'inputItemsB', x: 76, y: 47, width: 1, height: 1 },
