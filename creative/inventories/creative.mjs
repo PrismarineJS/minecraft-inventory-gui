@@ -115,6 +115,7 @@ class CanvasWindow {
     dy *= this.scale
     const img = getImage(obj)
     scale = scale || 1
+    // console.log('draw',obj,dx,dy,slice,scale)
     if (slice) {
       const w = slice[2]; const h = slice[3]
       // sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
@@ -172,6 +173,8 @@ class InventoryWindow extends CanvasWindow {
   downListeners = []
   downScrollbar
 
+  lastHover = []
+
   constructor(canMan) {
     super()
     canMan.children.push(this)
@@ -221,21 +224,32 @@ class InventoryWindow extends CanvasWindow {
     this.sensitiveRegions.set(type + regionBB.bbRel.toString(), [regionBB, id, type, handler, data])
   }
 
+  isActive(id) {
+    return this.lastHover.includes(id)
+  }
+
   updateCursorHighlights() {
     const { x, y } = this.can.lastCursorPosition
     this.boxHighlights = []
-    const hits = []
+    const hitBBs = []
+    const hitsIds = []
     for (const [bb, id, type, handler, data] of this.sensitiveRegions.values()) {
       if (bb.contains(x, y) && type.includes('hover')) {
         // console.log('in',bb)
-        hits.push(bb.bbRel)
-        handler(id, 'hover', [x, y], data)
+        hitBBs.push(bb.bbRel)
+        hitsIds.push(id)
+        this[handler](id, 'hover', [x, y], data)
       }
     }
-    // this.tickRender()
-    for (const hit of hits) {
+    for (const hit of hitBBs) {
       this.boxHighlights.push(hit)
     }
+    for (const id of this.lastHover) {
+      if (!hitsIds.includes(id)) {
+        this.onTooltipEvent(id, 'release')
+      }
+    }
+    this.lastHover = hitsIds
   }
 
   render() {
@@ -282,6 +296,8 @@ class InventoryWindow extends CanvasWindow {
       }
       val.x ??= 0
       val.y ??= 0
+
+      // Merge values from `using` value into current object
       if (_using) {
         if (val.using instanceof Function) {
           _using = val.using(this, val)
@@ -290,10 +306,11 @@ class InventoryWindow extends CanvasWindow {
           const [key, entry] = _using.split('.')
           Object.assign(val, globalThis.layouts[key].with?.[entry])
         } else {
-          // console.log('assign', val, this.windows[this.windowId].with[_using])
           Object.assign(val, globalThis.layouts[this.windowId].with[_using])
         }
       }
+
+      // Run `if` condition to see if we should render this or not
       if (val['if']) {
         const ctx = this;
         if (val['if'] instanceof Function) {
@@ -314,7 +331,7 @@ class InventoryWindow extends CanvasWindow {
         const bb = [...val.bb]
         bb[0] += xoff
         bb[1] += yoff
-        this.registerSensitive(new BB(...bb), 'hover+click', val.id, this.onInputBoxInteract)
+        this.registerSensitive(new BB(...bb), 'hover+click', val.id, 'onInputBoxInteract')
         this.drawInput(val, bb, this[val.variable])
       } else if (val.type == 'text') {
         this.drawText(val, val.x + xoff, val.y + yoff)
@@ -322,24 +339,24 @@ class InventoryWindow extends CanvasWindow {
         // console.log('RC',val.x + xoff, val.y + yoff)
         this.renderLayout(val.children, val.x + xoff, val.y + yoff)
       } else if (val.type == 'itemgrid') {
-        var i = 0;
-        val.size ??= 16
-        val.padding ??= 2
-        for (var _x = 0; _x < val.width; _x++) {
-          for (var _y = 0; _y < val.height; _y++) {
+        let i = 0
+        // Some defaults
+        val.width ??= 1; val.height ??= 1; val.size ??= 16; val.padding ??= 2;
+        for (let _x = 0; _x < val.width; _x++) {
+          for (let _y = 0; _y < val.height; _y++) {
             const bb = [val.x + (_x * val.size) + xoff + (_x * val.padding), val.y + (_y * val.size) + yoff + (_y * val.padding), val.size, val.size]
             // this.drawBox(bb)
             this.drawItem(this[val.containing][i], bb[0], bb[1])
             // console.log('d', bb)
-            this.registerSensitive(new BB(...bb), 'hover+click', val.id, this.onItemEvent)
-            i++;
+            this.registerSensitive(new BB(...bb), 'hover+click', val.id, 'onItemEvent')
+            i++
           }
         }
       } else if (val.type == 'scrollbar') {
         // console.log('registered', ...val.bb, xoff, yoff)
         const bb = new BB(...val.bb, xoff, yoff)
         // this.drawBox(bb.bbRel)
-        this.registerSensitive(bb, 'hover+click', val.id, this.onScrollbarEvent, [bb, val])
+        this.registerSensitive(bb, 'hover+click', val.id, 'onScrollbarEvent', [bb, val])
         const inc = this[val.id + 'Increment']
 
         if (inc) {
@@ -356,11 +373,11 @@ class InventoryWindow extends CanvasWindow {
 
         const bb = [val.x + xoff, val.y + yoff, val.slice[2], val.slice[3]]
         // this.drawBox(bb)
-        this.registerSensitive(new BB(...bb), 'hover', val.id, this.onTooltipEvent)
+        this.registerSensitive(new BB(...bb), 'hover', val.id, 'onTooltipEvent')
       }
       if (val.onClick) {
         const bb = [val.x, val.y, val.h ?? val.slice[2], val.w ?? val.slice[3]]
-        this.registerSensitive(new BB(...bb), 'click', val.id, this.onClickEvent)
+        this.registerSensitive(new BB(...bb), 'click', val.id, 'onClickEvent')
       }
       // console.log('REC')
       if (val.children && val.type != 'container') {
@@ -370,26 +387,26 @@ class InventoryWindow extends CanvasWindow {
     }
   }
 
-  onInputBoxInteract = (id, type, pos) => {
+  onInputBoxInteract(id, type, pos) {
     console.log('input box interact', id, type, pos)
     if (type == 'click') {
       this.activeInput = id
     }
   }
 
-  onItemEvent = (id, type, pos) => {
+  onItemEvent(id, type, pos) {
 
   }
 
-  onClickEvent = (id, type, pos) => {
+  onClickEvent(id, type, pos) {
 
   }
 
-  onTooltipEvent = (id, type, pos) => {
-    console.log('called', id, type, pos)
+  onTooltipEvent(id, type, pos) {
+    // console.log('called', id, type, pos)
   }
 
-  onScrollbarEvent = (id, type, [ax, ay], data) => {
+  onScrollbarEvent(id, type, [ax, ay], data) {
     if (type == 'release') {
       this.downScrollbar = null
     } else if (type == 'hover' && this.downScrollbar == id) {
@@ -477,6 +494,55 @@ class AnvilInventory extends InventoryWindow {
   renameText = 'Hello world!'
 }
 
+class EnchantingTable extends InventoryWindow {
+  windowId = 'EnchantingTable'
+  layout = [ globalThis.layouts.EnchantingTable ]
+
+  animFrame = 0
+
+  enchantItem = []
+  lapisItem = []
+
+  enchant1 = []
+  enchant2 = null
+  enchant3 = []
+
+  inventoryItems = []
+  hotbarItems = []
+
+  constructor(...args) {
+    super(...args)
+
+    let reversing = false
+
+    setInterval(() => {
+      if (reversing) {
+        this.animFrame -= 2
+      } else {
+        this.animFrame += 2
+      }
+      if (this.animFrame < 0) {
+        reversing = false
+        this.animFrame = 0
+      } else if (this.animFrame > 330) {
+        reversing = true
+      }
+      // console.log(this.animFrame)
+      // this.animFrame = this.animFrame % 330
+      this.needsUpdate = true
+    }, 40)
+  }
+
+  isActive(id) {
+    return super.isActive(id) && this[id]
+  }
+
+  onTooltipEvent(id, type, pos) {
+    super.onTooltipEvent(id, type, pos)
+    this.needsUpdate = true
+  }
+}
+
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
 canvasManager.setScale(4)
@@ -488,7 +554,11 @@ canvasManager.setScale(4)
 //   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 // })
 
-window.creative = new AnvilInventory(canvasManager, {
+// window.creative = new AnvilInventory(canvasManager, {
+//   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
+// })
+
+window.creative = new EnchantingTable(canvasManager, {
   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 })
 

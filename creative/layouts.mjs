@@ -124,7 +124,7 @@ layouts.BrewingStand = {
           type: 'item', using: 'fuel', x: 60, y: 44,
           draw(ctx, self, [x, y]) {
             const width = Math.max(0, Math.min((18 * ctx.fuelRemaining + 20 - 1) / 20, 18))
-            console.log('drawing',[self.slice[0], self.slice[1], width, self.slice[3]])
+            console.log('drawing', [self.slice[0], self.slice[1], width, self.slice[3]])
             ctx.drawImage(self, x, y, [self.slice[0], self.slice[1], width, self.slice[3]])
           }
         },
@@ -170,6 +170,55 @@ layouts.Anvil = {
     { type: 'itemgrid', containing: 'resultItems', x: 134, y: 47, width: 1, height: 1 },
     { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
     { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 },
+  ]
+}
+
+layouts.EnchantingTable = {
+  with: {
+    enchanting_table: { path: 'gui/container/enchanting_table', slice: [0, 0, 176, 166] },
+    active_ench: { path: 'gui/container/enchanting_table', slice: [0, 166, 108, 19] },
+    inactive_ench: { path: 'gui/container/enchanting_table', slice: [0, 166 + 19, 108, 19] },
+    hover_ench: { path: 'gui/container/enchanting_table', slice: [0, 204, 108, 19] },
+    active_orb: { path: 'gui/container/enchanting_table' },
+    inactive_orb: { path: 'gui/container/enchanting_table' },
+    book_anims: { path: 'enchant_table_anims2' }
+  },
+  type: 'image',
+  using: 'enchanting_table',
+  children: [
+    {
+      type: 'image', x: 14, y: 10, using: 'book_anims',
+      slice: [ 0, 0, 128, 128 ],
+      // slice: [ 0, 0, 128, 128 ],
+      // scale: 0.25,
+      draw(ctx, self, [x, y]) {
+        // const row = Math.floor(ctx.animFrame / 5)
+        // const col = ctx.animFrame % 5
+        ctx.drawImage(self, x, y, [0, ctx.animFrame * 150, 150, 150], 0.25)
+      }
+    },
+    {
+      type: 'container', x: 60, y: 14, children: [
+        { type: 'image', id: 'enchant1', tip: true, using: (ctx) => ctx.isActive('enchant1') ? 'hover_ench' : (ctx.enchant1 ? 'active_ench' : 'inactive_ench') },
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant1 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 0, 223 + (ctx.enchant1 ? 0 : 16), 16, 16 ]) }
+      ],
+    },
+    {
+      type: 'container', x: 60, y: 14 + 19, children: [
+        { type: 'image', id: 'enchant2', tip: true, using: (ctx) => ctx.isActive('enchant2') ? 'hover_ench' : (ctx.enchant2 ? 'active_ench' : 'inactive_ench') },
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant2 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 16, 223 + (ctx.enchant2 ? 0 : 16), 16, 16 ]) }
+      ]
+    },
+    {
+      type: 'container', x: 60, y: 14 + 19 + 19, children: [
+        { type: 'image', id: 'enchant3', tip: true, using: (ctx) => ctx.isActive('enchant3') ? 'hover_ench' : (ctx.enchant3 ? 'active_ench' : 'inactive_ench') },
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant3 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 32, 223 + (ctx.enchant3 ? 0 : 16), 16, 16 ]) }
+      ]
+    },
+    { type: 'itemgrid', containing: 'enchantItem', x: 15, y: 47 },
+    { type: 'itemgrid', containing: 'lapisItem', x: 35, y: 47 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
   ]
 }
 
