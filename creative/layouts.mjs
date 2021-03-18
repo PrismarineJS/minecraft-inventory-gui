@@ -222,4 +222,20 @@ layouts.EnchantingTable = {
   ]
 }
 
+layouts.PlayerInventory = {
+  with: {
+    inventory: { path: 'gui/container/inventory', slice: [0, 0, 176, 166] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'shieldItems', x: 77, y: 62 },
+    { type: 'itemgrid', containing: 'craftingItems', x: 98, y: 18, width: 2, height: 2 },
+    { type: 'itemgrid', containing: 'resultItems', x: 154, y: 28 },
+    { type: 'itemgrid', containing: 'armorItems', x: 8, y: 8, width: 1, height: 4 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
 if (typeof module != 'undefined') module.exports = { windows }

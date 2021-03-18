@@ -1,4 +1,5 @@
 import { getImage } from '../util.mjs'
+import { SimpleEmitter } from './emitter.mjs'
 import '../layouts.mjs'
 
 class BB {
@@ -11,6 +12,13 @@ class BB {
     this.bbRel = [this.minX, this.minY, dx, dy]
     this.bbAbs = [this.minX, this.minY, this.maxX, this.maxY]
   }
+}
+
+function getDistance(x1, y1, x2, y2) {
+  var a = x1 - x2
+  var b = y1 - y2
+  var c = Math.sqrt(a * a + b * b)
+  return c
 }
 
 class CanvasEventManager {
@@ -28,6 +36,8 @@ class CanvasEventManager {
     canvas.tabIndex = 1 // Allow us to capture key presses
     canvas.style.outline = "none" // remove the outline
     canvas.addEventListener('keydown', this.onKeyDown, { passive: true })
+
+    canvas.oncontextmenu = e => e.preventDefault()
   }
 
   setScale(scale) {
@@ -61,7 +71,8 @@ class CanvasEventManager {
   onCursorClick = (evt) => {
     const pos = this.getMousePos(canvas, evt);
     const { x, y } = this.getCanvasCoords(this.ctx, pos.x, pos.y)
-    this.children.forEach(e => e.onCanvasMouseDown(x, y))
+    const secondary = evt.button == 2 // Right click
+    this.children.forEach(e => e.onCanvasMouseDown(x, y, secondary))
   }
 
   onCursorRelease = (evt) => {
@@ -92,7 +103,7 @@ class CanvasEventManager {
   }
 }
 
-class CanvasWindow {
+class CanvasWindow extends SimpleEmitter {
   scale = 1
 
   drawItem(obj, x, y) {
@@ -103,10 +114,12 @@ class CanvasWindow {
       'block/bookshelf',
       'item/apple',
       'item/compass_00']
-    const path = items[Math.floor(Math.random() * items.length)];
-    // const path = ''
+    // const path = items[Math.floor(Math.random() * items.length)];
+    // const count = Math.floor(Math.random() * 100)
+    const path = items[obj.type]
+    const count = obj.count
     this.drawImage({ path }, x, y)
-    this.drawText({ value: Math.floor(Math.random() * 100), stroke: true, fontStyle: 'bold', px: 8, style: 'white' }, x + 10, y + 16)
+    this.drawText({ value: count, stroke: true, fontStyle: 'bold', px: 8, style: 'white' }, x + 10, y + 16)
   }
 
   drawImage(obj, dx, dy, slice, scale) {
@@ -173,6 +186,7 @@ class InventoryWindow extends CanvasWindow {
   downListeners = []
   downScrollbar
 
+  _lastClick = null
   lastHover = []
 
   constructor(canMan) {
@@ -182,21 +196,33 @@ class InventoryWindow extends CanvasWindow {
     this.drawCtx = canMan.ctx
   }
 
-  onCanvasMouseDown(x, y) {
+  onCanvasMouseDown(x, y, secondary) {
     this.activeInput = null
+    let double = false
+    if (this._lastClick) {
+      const dist = getDistance(x, y, this._lastClick.x, this._lastClick.y)
+      const timeDelta = Date.now() - this._lastClick.time
+      if (dist < 0.5 && timeDelta < 500 && !this._lastClick.double) {
+        console.log('Double click!')
+        double = true
+      }
+    }
 
     for (const [bb, id, type, handler, data] of this.sensitiveRegions.values()) {
       if (bb.contains(x, y) && type.includes('click')) {
         console.log('click in', bb)
         // hits.push(bb.bbRel)
-        handler(id, 'click', [x, y], data)
+        let str = double ? 'doubleclick' : 'click'
+        if (secondary) str = 'right' + str
+        this[handler](id, str, [x, y], data)
         this.downListeners.push([handler, id])
       }
     }
+    this._lastClick = { x, y, time: Date.now(), double }
   }
 
   onCanvasMouseUp() {
-    this.downListeners.forEach(([handler, id]) => handler(id, 'release', [this.can.lastCursorPosition.x, this.can.lastCursorPosition.y]))
+    this.downListeners.forEach(([handler, id]) => this[handler](id, 'release', [this.can.lastCursorPosition.x, this.can.lastCursorPosition.y]))
     this.downListeners = []
   }
 
@@ -276,7 +302,7 @@ class InventoryWindow extends CanvasWindow {
 
     if (this.floatingItem) {
       const { x, y } = this.can.lastCursorPosition
-      this.drawItem(null, x - 8, y - 8)
+      this.drawItem(this.floatingItem, x - 8, y - 8)
     }
 
     this.drawCtx.fillText(`Pos: x: ${this.can.lastCursorPosition.x} y: ${this.can.lastCursorPosition.y}`, 0, 10)
@@ -323,7 +349,7 @@ class InventoryWindow extends CanvasWindow {
       }
 
       if (val.draw) {
-        val.draw(this, val, [ val.x + xoff, val.y + yoff ])
+        val.draw(this, val, [val.x + xoff, val.y + yoff])
       } else if (val.type == 'image') {
         this.drawImage(val, val.x + xoff, val.y + yoff, val.slice, val.scale)
       } else if (val.type == 'input') {
@@ -346,9 +372,10 @@ class InventoryWindow extends CanvasWindow {
           for (let _y = 0; _y < val.height; _y++) {
             const bb = [val.x + (_x * val.size) + xoff + (_x * val.padding), val.y + (_y * val.size) + yoff + (_y * val.padding), val.size, val.size]
             // this.drawBox(bb)
-            this.drawItem(this[val.containing][i], bb[0], bb[1])
+            const item = this[val.containing][i]
+            if (item) this.drawItem(item, bb[0], bb[1])
             // console.log('d', bb)
-            this.registerSensitive(new BB(...bb), 'hover+click', val.id, 'onItemEvent')
+            this.registerSensitive(new BB(...bb), 'hover+click', val.id, 'onItemEvent', [val.containing, i])
             i++
           }
         }
@@ -365,7 +392,7 @@ class InventoryWindow extends CanvasWindow {
           this.drawImage(val, val.x + xoff, val.y + yoff, val.slice, val.scale)
         }
       } else if (val.type == 'box') {
-        this.drawBox([ val.x + xoff, val.y + yoff, val.h ?? 10, val.w ?? 10 ])
+        this.drawBox([val.x + xoff, val.y + yoff, val.h ?? 10, val.w ?? 10])
       }
 
       if (val.tip) {
@@ -394,16 +421,17 @@ class InventoryWindow extends CanvasWindow {
     }
   }
 
-  onItemEvent(id, type, pos) {
-
+  onItemEvent(id, type, pos, data) {
+    this.emit('itemEvent', id, type, pos, data)
   }
 
-  onClickEvent(id, type, pos) {
-
+  onClickEvent(id, type, pos, data) {
+    this.emit('click', id, type, pos, data)
   }
 
-  onTooltipEvent(id, type, pos) {
+  onTooltipEvent(id, type, pos, data) {
     // console.log('called', id, type, pos)
+    this.emit('tooltip', id, type, pos, data)
   }
 
   onScrollbarEvent(id, type, [ax, ay], data) {
@@ -455,7 +483,7 @@ class CreativeInventory extends InventoryWindow {
 
 class BrewingStandInventory extends InventoryWindow {
   windowId = 'BrewingStand'
-  layout = [ globalThis.layouts.BrewingStand ]
+  layout = [globalThis.layouts.BrewingStand]
 
   blazePowderItem = []
   ingredientItem = []
@@ -466,7 +494,7 @@ class BrewingStandInventory extends InventoryWindow {
   inventoryItems = []
   hotbarItems = []
 
-  brewingTicks = 20*20
+  brewingTicks = 20 * 20
   fuelRemaining = 20
 
   constructor(...args) {
@@ -483,7 +511,7 @@ class BrewingStandInventory extends InventoryWindow {
 
 class AnvilInventory extends InventoryWindow {
   windowId = 'Anvil'
-  layout = [ globalThis.layouts.Anvil ]
+  layout = [globalThis.layouts.Anvil]
 
   inputItemsA = []
   inputItemsB = []
@@ -496,7 +524,7 @@ class AnvilInventory extends InventoryWindow {
 
 class EnchantingTable extends InventoryWindow {
   windowId = 'EnchantingTable'
-  layout = [ globalThis.layouts.EnchantingTable ]
+  layout = [globalThis.layouts.EnchantingTable]
 
   animFrame = 0
 
@@ -543,6 +571,32 @@ class EnchantingTable extends InventoryWindow {
   }
 }
 
+class PlayerInventory extends InventoryWindow {
+  windowId = 'PlayerInventory'
+  layout = [globalThis.layouts.PlayerInventory]
+
+  craftingItems = []
+  resultItems = []
+  shieldItems = []
+  armorItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  items = [this.shieldItems, this.craftingItems, this.resultItems, this.armorItems, this.inventoryItems, this.hotbarItems]
+
+  getWindowMap(version) {
+    return {
+      craftingItems: [1, 4],
+      resultItems: [0],
+      shieldItems: [45],
+      armorItems: [5, 8],
+      inventoryItems: [9, 35],
+      hotbarItems: [36, 44]
+    }
+  }
+}
+
+
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
 canvasManager.setScale(4)
@@ -558,9 +612,11 @@ canvasManager.setScale(4)
 //   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 // })
 
-window.creative = new EnchantingTable(canvasManager, {
-  hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
-})
+// window.creative = new EnchantingTable(canvasManager, {
+//   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
+// })
+
+window.creative = new PlayerInventory(canvasManager, {})
 
 setTimeout(() => {
   canvasManager.startRendering()
