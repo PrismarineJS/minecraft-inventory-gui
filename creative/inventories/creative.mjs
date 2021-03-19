@@ -36,6 +36,7 @@ class CanvasEventManager {
     canvas.tabIndex = 1 // Allow us to capture key presses
     canvas.style.outline = "none" // remove the outline
     canvas.addEventListener('keydown', this.onKeyDown, { passive: true })
+    canvas.addEventListener('keyup', this.onKeyUp, { passive: true })
 
     canvas.oncontextmenu = e => e.preventDefault()
   }
@@ -84,6 +85,11 @@ class CanvasEventManager {
   onKeyDown = (evt) => {
     // console.log('Got key down', evt)
     this.children.forEach(e => e.onCanvasKeyDown(evt.key, evt.code))
+  }
+
+  onKeyUp = (evt) => {
+    // console.log('Got key down', evt)
+    this.children.forEach(e => e.onCanvasKeyUp(evt.key, evt.code))
   }
 
   clear() {
@@ -186,8 +192,11 @@ class InventoryWindow extends CanvasWindow {
   downListeners = []
   downScrollbar
 
+  _downKeys = new Set()
+
   _lastClick = null
   lastHover = []
+
 
   constructor(canMan) {
     super()
@@ -231,6 +240,7 @@ class InventoryWindow extends CanvasWindow {
   }
 
   onCanvasKeyDown(key, code) {
+    this._downKeys.add(code)
     if (this.activeInput && this.$(this.activeInput)) {
       const varId = this.$(this.activeInput).variable
       if (key.length == 1) { // detect character, better way to do this?
@@ -244,6 +254,10 @@ class InventoryWindow extends CanvasWindow {
       this.onInputBoxInteract(this.activeInput, 'press', [])
       this.needsUpdate = true
     }
+  }
+
+  onCanvasKeyUp(key, code) {
+    this._downKeys.delete(code)
   }
 
   registerSensitive(regionBB, type, id, handler, data) {
