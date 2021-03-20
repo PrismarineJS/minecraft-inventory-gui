@@ -9,15 +9,26 @@
 </head>
 
 <body>
+  <select name="" id="active-win" onchange="updateWin()">
+    <option value="PlayerWin">Survival inv</option>
+    <option value="CreativeWin">Creative win</option>
+    <option value="BrewingWin">Brewing win</option>
+    <option value="AnvilWin">Anvil win</option>
+    <option value="EnchantingWin">Enchant win</option>
+    <option value="DropDispenseWin">DropDispenseWin win</option>
+    <option value="CraftingWin">CraftingWin win</option>
+    <option value="ChestWin">ChestWin win</option>
+    <option value="LargeChestWin">LargeChestWin win</option>
+    <option value="FurnaceWin">FurnaceWin win</option>
+    <option value="HorseWin">HorseWin win</option>
+    <option value="VillagerWin">VillagerWin win</option>
+  </select>
+
+  <input type="checkbox" onchange="globalThis.TESTING = !globalThis.TESTING"> Randomize items
+
   <div>
     <canvas id="demo" width="1000" height="1000"></canvas>
   </div>
-
-  <!-- <select name="" id="">
-    <option value="PlayerInventory">Survival win</option>
-    <option value="EnchantingTable">Enchant win</option>
-    <option value="PlayerInventory">Survival inv</option>
-  </select> -->
 
   <script type="module" src="app.mjs"></script>
   <script src="./pwindow.js"></script>

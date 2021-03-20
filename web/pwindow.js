@@ -64,7 +64,7 @@ class PWindowManager {
       if (item) {
         if (floating.type == item.type) {
           // add to existing slot
-          const free = this.getMaxStackSize(item) - item.count
+          const free = item.stackSize - item.count
           const consumable = Math.min(floating.count, free)
           floating.count -= consumable
           item.count += consumable
@@ -93,7 +93,7 @@ class PWindowManager {
     const floating = this.win.floatingItem
     if (floating) {
       if (slot) {
-        const free = this.getMaxStackSize(slot) - slot.count
+        const free = slot.stackSize - slot.count
         if (slot.type == floating.type && free >= 1) {
           slot.count++
           floating.count--
@@ -108,7 +108,7 @@ class PWindowManager {
       }
     } else {
       this.win.floatingItem = slot.clone()
-      const split = Math.floor(slot.count / 2)
+      const split = Math.ceil(slot.count / 2)
       slot.count -= split
       this.win.floatingItem.count = split
     }
@@ -121,7 +121,7 @@ class PWindowManager {
     const currentItem = this.inv.slots[inventoryIndex]
     if (currentItem) {
       if (currentItem.type !== item.type) return 0
-      const free = this.getMaxStackSize(currentItem) - item.count
+      const free = currentItem.stackSize - item.count
       const amountToAdd = Math.min(item.count, free)
       if (amountToAdd <= 0) return 0
       currentItem.count += amountToAdd
@@ -138,7 +138,7 @@ class PWindowManager {
   /**
    * 
    * @param {string} slotType - The type of ItemGrid for example the hotbar or armor bar or inventory. The variable used in layout window classes.
-   * @param {*} inventoryIndex - The index in the Prismarine-Window slots sent over the network
+   * @param {number} inventoryIndex - The index in the Prismarine-Window slots sent over the network
    * @param {*} item - The item at the position of the `inventoryIndex`
    */
   onShiftClick(slotType, inventoryIndex, item) {
@@ -249,6 +249,8 @@ class Item {
   constructor(type, count) {
     this.type = type
     this.count = count
+
+    this.stackSize = 64
   }
   clone() {
     return new Item(this.type, this.count)
