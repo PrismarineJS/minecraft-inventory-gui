@@ -130,7 +130,7 @@ class CanvasWindow extends SimpleEmitter {
       var count = obj.count
     }
     this.drawImage({ path }, x, y)
-    this.drawText({ value: count, stroke: true, fontStyle: 'bold', px: 8, style: 'white' }, x + 10, y + 16)
+    this.drawText({ value: count, stroke: true, fontStyle: 'bold 8px sans-serif', style: 'white' }, x + 10, y + 16)
   }
 
   drawImage(obj, dx, dy, slice, scale) {
@@ -156,7 +156,10 @@ class CanvasWindow extends SimpleEmitter {
     x ||= 0; y ||= 0;
     x *= this.scale
     y *= this.scale
-    this.drawCtx.font = `${obj.fontStyle || 'normal'} ${obj.fontVariant || 'normal'} ${obj.fontWeight || 'normal'} ${obj.px || 11}px sans-serif`
+    const oldFont = this.drawCtx.font
+    const oldFillStyle = this.drawCtx.fillStyle
+    // this.drawCtx.font = `${obj.fontStyle || 'normal'} ${obj.fontVariant || 'normal'} ${obj.fontWeight || 'normal'} ${obj.px || 11}px sans-serif`
+    this.drawCtx.font = obj.fontStyle ?? 'normal normal 11px sans-serif'
     this.drawCtx.fillStyle = obj.style || 'black'
     this.drawCtx.fillText(obj.value, x, y)
     if (obj.stroke) {
@@ -414,13 +417,14 @@ class InventoryWindow extends CanvasWindow {
           this.drawImage(val, val.x + xoff, val.y + yoff, val.slice, val.scale)
         }
       } else if (val.type == 'box') {
-        this.drawBox([val.x + xoff, val.y + yoff, val.h ?? 10, val.w ?? 10])
+        this.drawBox([val.x + xoff, val.y + yoff, val.w ?? 10, val.h ?? 10])
       }
 
       if (val.tip) {
-        console.assert(val.slice, 'need a slice bb for sensitive region', val)
+        const slice = val.slice ?? [ 0, 0, val.w, val.h ]
+        console.assert(slice, 'need a slice bb for sensitive region', val)
 
-        const bb = [val.x + xoff, val.y + yoff, val.slice[2], val.slice[3]]
+        const bb = [val.x + xoff, val.y + yoff, slice[2], slice[3]]
         // this.drawBox(bb)
         this.registerSensitive(new BB(...bb), 'hover', val.id, 'onTooltipEvent')
       }
@@ -716,9 +720,32 @@ class HorseWin extends InventoryWindow {
   }
 }
 
+class VillagerWin extends InventoryWindow {
+  windowId = 'Villager'
+  layout = [ layouts.Villager ]
+
+  trades = [
+    // if a 
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+    { input1: {}, inputSalePrice: 64, inputOriginalPrice: 0, input2: {}, output: {} },
+  ]
+
+  input1Items = []
+  input2Items = []
+  outputItems = []
+
+  inventoryItems = []
+  hotbarItems = []
+}
+
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
-canvasManager.setScale(4)
+canvasManager.setScale(3.5)
 // window.creative = new CreativeInventory(canvasManager, {
 //   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 // })
@@ -736,7 +763,7 @@ canvasManager.setScale(4)
 // })
 
 // window.creative = new PlayerInventory(canvasManager, {})
-window.creative = new HorseWin(canvasManager, {})
+window.creative = new VillagerWin(canvasManager, {})
 
 
 setTimeout(() => {

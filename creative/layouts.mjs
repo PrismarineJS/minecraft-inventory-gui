@@ -339,5 +339,59 @@ layouts.Horse = {
   ]
 }
 
+layouts.Villager = {
+  with: {
+    inventory: { path: 'gui/container/villager2', slice: [0, 0, 276, 166] },
+    box: { path: 'gui/container/villager2', slice: [279, 74, 88, 25] },
+    arrow: { path: 'gui/container/villager2', slice: [15, 171, 10, 9] },
+    tabSliderActive: { path: 'gui/container/villager2', slice: [0, 199, 6, 27] }
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    {
+      type: 'container', x: 4, y: 18, children: [
+        {
+          draw(ctx, self, [x, y]) {
+            const layouts = []
+            for (let i = 0; i < 7; i++) {
+              if (!ctx.trades[i]) continue
+              layouts.push({
+                type: 'container', x, y: y + (i * 20), w: 88, h: 20, tip: 'hello', children: [
+                  {
+                    draw(ctx, self, [x, y]) {
+                      ctx.drawItem({ ...ctx.trades[i].input1, count: ctx.trades[i].inputOriginalPrice }, x + 2, y + 2)
+                      ctx.drawText({ value: ctx.trades[i].inputSalePrice, fontStyle: 'italic 7px sans-serif', style: 'red' }, x + 22, y + 18)
+                      ctx.drawItem(ctx.trades[i].input2, x + 32, y + 2)
+                      ctx.drawItem(ctx.trades[i].input2, x + 70, y + 2)
+                    }
+                  },
+                  { type: 'image', using: 'arrow', x: 55, y: 5 },
+                ]
+              })
+            }
+            ctx.renderLayout(layouts)
+          },
+        },
+        {
+          type: 'scrollbar', id: 'scrollbar',
+          using: 'tabSliderActive', x: 90, y: 0,
+          // if: 'ctx.items.length > (5*9)',
+          bb: [90, 0, 6, 140],
+        },
+      ]
+    },
+    {
+      type: 'container', x: 107, children: [
+        { type: 'itemgrid', containing: 'input1Items', x: 136-107, y: 37 },
+        { type: 'itemgrid', containing: 'input2Items', x: 162-107, y: 37 },
+        { type: 'itemgrid', containing: 'outputItems', x: 216-107, y: 34, padding: 4 },
+        { type: 'itemgrid', containing: 'inventoryItems', x: 1, y: 84, width: 9, height: 3 },
+        { type: 'itemgrid', containing: 'hotbarItems', x: 1, y: 84 + 58, width: 9, height: 1 }
+      ]
+    }
+  ]
+}
+
 
 if (typeof module != 'undefined') module.exports = { windows }
