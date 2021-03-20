@@ -1,4 +1,13 @@
-const IMAGE_ROOT = 'textures/'
+import { layouts } from '../lib/layouts.mjs'
+
+globalThis.layouts = layouts
+
+if (window.location.href.includes('127.0.0.1')) {
+  var IMAGE_ROOT = 'textures/'
+} else {
+  var IMAGE_ROOT = 'https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.16.4/'
+}
+
 const loadedImageBlobs = {}
 
 const images = [
@@ -15,8 +24,9 @@ const images = [
   'item/glass_bottle',
   'item/chest_minecart',
 ]
-for (const win in globalThis.layouts) {
-  const val = globalThis.layouts[win]
+
+for (const win in layouts) {
+  const val = layouts[win]
   for (const key in val.with) {
     const path = val.with[key].path
     if (path && !images.includes(path)) {
@@ -26,10 +36,6 @@ for (const win in globalThis.layouts) {
 }
 
 function loadAllImagesWeb() {
-  // const images = [
-  //   'gui/container/creative_inventory/tabs',
-  //   'gui/container/creative_inventory/tab_item_search'
-  // ]
   for (const path of images) {
     var img = new Image();   // Create new img element
     img.src = IMAGE_ROOT + path + '.png'; // Set source path
@@ -49,19 +55,6 @@ function loadRuntimeImage(atPath) {
   loadedImageBlobs[atPath] = img
 }
 
-function loadAllImagesNode() {
-  const { loadImage } = require('canvas')
-  // const images = [
-  //   'gui/container/creative_inventory/tabs',
-  //   'gui/container/creative_inventory/tab_inventory'
-  // ]
-  for (const path of images) {
-    loadImage(`./${path}.png`).then((image) => {
-      loadedImageBlobs[path] = image
-    })
-  }
-}
-
 export function getImage(options) {
   let path = options.path
 
@@ -77,9 +70,4 @@ export function getImage(options) {
   return loadedImageBlobs[path]
 }
 
-if (typeof window !== 'undefined') {
-  loadAllImagesWeb()
-} else {
-  loadAllImagesNode()
-  // module.exports = { getImage }
-}
+loadAllImagesWeb()

@@ -1,9 +1,11 @@
 // const mcData = require('minecraft-data')('1.16')
 
-let PlayerInventory, DropDispenseInventory, AnvilInventory,
-  BeaconInventory, FurnaceInventory, BrewingStandInventory, CraftingTableInventory,
-  EnchantingTableInventory, GrindstoneInv, HopperInv, LecternInv, LoomInv, VillagerInv,
-  ShulkerBoxInv, SmokerInv, CartographyInv, StonecutterInv
+let PlayerInventory
+
+// , DropDispenseInventory, AnvilInventory,
+//   BeaconInventory, FurnaceInventory, BrewingStandInventory, CraftingTableInventory,
+//   EnchantingTableInventory, GrindstoneInv, HopperInv, LecternInv, LoomInv, VillagerInv,
+//   ShulkerBoxInv, SmokerInv, CartographyInv, StonecutterInv
 
 class PWindowManager {
   mouseDown = false
@@ -25,7 +27,6 @@ class PWindowManager {
       }
     })
   }
-
 
   setSlot(inventoryIndex, item) {
     this.inv.slots[inventoryIndex] = item
@@ -281,35 +282,10 @@ class PWindow {
 const pwindow = new PWindow()
 
 setTimeout(() => {
-  // window.manager = new PWindowManager(window.creative, pwindow)
+  window.manager = new PWindowManager(window.inventory, pwindow)
 }, 2200)
 
-function createWindowView(pwindow) {
-  let windows = {}
-  windows['minecraft:inventory'] = { clas: PlayerInventory }
-  // windows['minecraft:generic_9x1'] = { type: protocolId++, inventory: { start: 1 * 9, end: 1 * 9 + 35 }, slots: 1 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_9x2'] = { type: protocolId++, inventory: { start: 2 * 9, end: 2 * 9 + 35 }, slots: 2 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_9x3'] = { type: protocolId++, inventory: { start: 3 * 9, end: 3 * 9 + 35 }, slots: 3 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_9x4'] = { type: protocolId++, inventory: { start: 4 * 9, end: 4 * 9 + 35 }, slots: 4 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_9x5'] = { type: protoc/olId++, inventory: { start: 5 * 9, end: 5 * 9 + 35 }, slots: 5 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_9x6'] = { type: protocolId++, inventory: { start: 6 * 9, end: 6 * 9 + 35 }, slots: 6 * 9 + 36, craft: -1, requireConfirmation: true }
-  // windows['minecraft:generic_3x3'] = { type: protocolId++, inventory: { start: 7 * 9, end: 7 * 9 + 35 }, slots: 7 * 9 + 36, craft: -1, requireConfirmation: true }
-
-  // windows['minecraft:anvil'] = { clas: AnvilInventory }
-  // windows['minecraft:beacon'] = { clas: BeaconInventory }
-  // windows['minecraft:blast_furnace'] = { clas: FurnaceInventory }
-  // windows['minecraft:brewing_stand'] = { clas: BrewingStandInventory }
-  // windows['minecraft:crafting'] = { clas: CraftingTableInventory }
-  // windows['minecraft:enchantment'] = { clas: EnchantingTableInventory }
-  // windows['minecraft:furnace'] = { clas: FurnaceInventory }
-  // // windows['minecraft:grindstone'] = { type: protocolId++, inventory: { start: 3, end: 38 }, slots: 39, craft: 2, requireConfirmation: true }
-  // windows['minecraft:hopper'] = { clas: HopperInv }
-  // windows['minecraft:lectern'] = { clas: LecternInv }
-  // windows['minecraft:loom'] = { clas: LoomInv }
-  // windows['minecraft:merchant'] = { clas: VillagerInv }
-  // windows['minecraft:shulker_box'] = { clas: ShulkerBoxInv }
-
-  // windows['minecraft:smoker'] = { clas: SmokerInv }
-  // windows['minecraft:cartography'] = { clas: CartographyInv }
-  // windows['minecraft:stonecutter'] = { clas: StonecutterInv }
-}
+// function createWindowView(pwindow) {
+//   let windows = {}
+//   windows['minecraft:inventory'] = { clas: PlayerInventory }
+// }
