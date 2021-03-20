@@ -188,7 +188,7 @@ layouts.EnchantingTable = {
   children: [
     {
       type: 'image', x: 14, y: 10, using: 'book_anims',
-      slice: [ 0, 0, 128, 128 ],
+      slice: [0, 0, 128, 128],
       // slice: [ 0, 0, 128, 128 ],
       // scale: 0.25,
       draw(ctx, self, [x, y]) {
@@ -200,19 +200,19 @@ layouts.EnchantingTable = {
     {
       type: 'container', x: 60, y: 14, children: [
         { type: 'image', id: 'enchant1', tip: true, using: (ctx) => ctx.isActive('enchant1') ? 'hover_ench' : (ctx.enchant1 ? 'active_ench' : 'inactive_ench') },
-        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant1 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 0, 223 + (ctx.enchant1 ? 0 : 16), 16, 16 ]) }
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant1 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [0, 223 + (ctx.enchant1 ? 0 : 16), 16, 16]) }
       ],
     },
     {
       type: 'container', x: 60, y: 14 + 19, children: [
         { type: 'image', id: 'enchant2', tip: true, using: (ctx) => ctx.isActive('enchant2') ? 'hover_ench' : (ctx.enchant2 ? 'active_ench' : 'inactive_ench') },
-        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant2 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 16, 223 + (ctx.enchant2 ? 0 : 16), 16, 16 ]) }
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant2 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [16, 223 + (ctx.enchant2 ? 0 : 16), 16, 16]) }
       ]
     },
     {
       type: 'container', x: 60, y: 14 + 19 + 19, children: [
         { type: 'image', id: 'enchant3', tip: true, using: (ctx) => ctx.isActive('enchant3') ? 'hover_ench' : (ctx.enchant3 ? 'active_ench' : 'inactive_ench') },
-        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant3 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [ 32, 223 + (ctx.enchant3 ? 0 : 16), 16, 16 ]) }
+        { draw: (ctx, self, [x, y]) => ctx.drawImage(ctx.enchant3 ? ctx.active_orb : ctx.inactive_orb, x, y + 2, [32, 223 + (ctx.enchant3 ? 0 : 16), 16, 16]) }
       ]
     },
     { type: 'itemgrid', containing: 'enchantItem', x: 15, y: 47 },
@@ -237,5 +237,107 @@ layouts.PlayerInventory = {
     { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
   ]
 }
+
+layouts.DropDispense = {
+  with: {
+    inventory: { path: 'gui/container/dispenser', slice: [0, 0, 176, 166] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'dispenseItems', x: 62, y: 17, width: 3, height: 3 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
+layouts.CraftingTable = {
+  with: {
+    inventory: { path: 'gui/container/crafting_table', slice: [0, 0, 176, 166] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'craftingItems', x: 30, y: 17, width: 3, height: 3 },
+    { type: 'itemgrid', containing: 'craftingItems', x: 124, y: 35 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
+// mc used to be able to do arbitrary size containers which was hacky, but
+// now most things are fixed size so it makes things alot easier for us now :)
+layouts.Chest = {
+  with: {
+    inventory: { path: 'gui/container/shulker_box', slice: [0, 0, 176, 166] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'chestItems', x: 8, y: 18, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
+layouts.LargeChest = {
+  with: {
+    inventory: { path: 'gui/container/generic_54', slice: [0, 0, 176, 221] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'chestItems', x: 8, y: 18, width: 9, height: 6 },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 140, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 140 + 58, width: 9, height: 1 }
+  ]
+}
+
+layouts.Furnace = {
+  with: {
+    inventory: { path: 'gui/container/furnace', slice: [0, 0, 176, 166] },
+    fuel: { path: 'gui/container/furnace', slice: [176, 0, 14, 16] },
+    progress: { path: 'gui/container/furnace', slice: [176, 14, null, 16] },
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    { type: 'itemgrid', containing: 'inputSlot', x: 56, y: 17 },
+    { type: 'itemgrid', containing: 'fuelSlot', x: 56, y: 53 },
+    { type: 'itemgrid', containing: 'outputSlot', x: 112, y: 31, padding: 4 },
+    {
+      type: 'image', using: 'fuel', x: 56, y: 36,
+      draw(ctx, self, [x, y]) {
+        ctx.drawImage(self, x, y + 12 - ctx.litProgress, [self.slice[0], 12 - ctx.litProgress, self.slice[2], ctx.litProgress + 1])
+      }
+    },
+    {
+      type: 'image', using: 'progress', x: 79, y: 34,
+      draw(ctx, self, [x, y]) {
+        ctx.drawImage(self, x, y, [self.slice[0], self.slice[1], ctx.burnProgress + 1, self.slice[3]])
+      }
+    },
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
+// Horses/Llamas... TODO
+layouts.Horse = {
+  with: {
+    inventory: { path: 'gui/container/horse', slice: [0, 0, 176, 166] },
+    extraSlots: { path: 'gui/container/horse', slice: [0, 166, 18 * 5, 54] }
+  },
+  type: 'image',
+  using: 'inventory',
+  children: [
+    // { type: 'image', using: 'extraSlots', if: 'ctx.hasChest', x: 79, y: 17 },
+    // { type: 'itemgrid', if: 'ctx.hasChest', containing: 'chestItems', x: 80, y: 18, width: 5, height: 3 },
+    // { type: 'image', using: '' }
+    { type: 'itemgrid', containing: 'inventoryItems', x: 8, y: 84, width: 9, height: 3 },
+    { type: 'itemgrid', containing: 'hotbarItems', x: 8, y: 84 + 58, width: 9, height: 1 }
+  ]
+}
+
 
 if (typeof module != 'undefined') module.exports = { windows }

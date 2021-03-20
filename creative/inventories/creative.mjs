@@ -2,6 +2,8 @@ import { getImage } from '../util.mjs'
 import { SimpleEmitter } from './emitter.mjs'
 import '../layouts.mjs'
 
+const TESTING = true
+
 class BB {
   constructor(minX, minY, dx, dy, xoff = 0, yoff = 0) {
     this.minX = minX + xoff
@@ -120,10 +122,13 @@ class CanvasWindow extends SimpleEmitter {
       'block/bookshelf',
       'item/apple',
       'item/compass_00']
-    // const path = items[Math.floor(Math.random() * items.length)];
-    // const count = Math.floor(Math.random() * 100)
-    const path = items[obj.type]
-    const count = obj.count
+    if (TESTING) {
+      var path = items[Math.floor(Math.random() * items.length)];
+      var count = Math.floor(Math.random() * 100)
+    } else {
+      var path = items[obj.type]
+      var count = obj.count
+    }
     this.drawImage({ path }, x, y)
     this.drawText({ value: count, stroke: true, fontStyle: 'bold', px: 8, style: 'white' }, x + 10, y + 16)
   }
@@ -196,7 +201,6 @@ class InventoryWindow extends CanvasWindow {
 
   _lastClick = null
   lastHover = []
-
 
   constructor(canMan) {
     super()
@@ -381,14 +385,18 @@ class InventoryWindow extends CanvasWindow {
       } else if (val.type == 'itemgrid') {
         let i = 0
         // Some defaults
-        val.width ??= 1; val.height ??= 1; val.size ??= 16; val.padding ??= 2;
+        val.width ??= 1; val.height ??= 1; val.size ??= 16; val.margin ??= 2; val.padding ??= 0;
         for (let _x = 0; _x < val.width; _x++) {
           for (let _y = 0; _y < val.height; _y++) {
-            const bb = [val.x + (_x * val.size) + xoff + (_x * val.padding), val.y + (_y * val.size) + yoff + (_y * val.padding), val.size, val.size]
+            const bb = [val.x + (_x * val.size) + xoff + (_x * val.margin) + val.padding, val.y + (_y * val.size) + yoff + (_y * val.margin) + val.padding, val.size, val.size]
             // this.drawBox(bb)
+            // console.log(val.padding)
             const item = this[val.containing][i]
-            if (item) this.drawItem(item, bb[0], bb[1])
+            if (item || TESTING) this.drawItem(item, bb[0], bb[1])
             // console.log('d', bb)
+            if (val.padding) { // Apply padding to the bb
+              bb[0] -= val.padding; bb[1] -= val.padding; bb[2] += val.padding * 2; bb[3] += val.padding * 2;
+            }
             this.registerSensitive(new BB(...bb), 'hover+click', val.id, 'onItemEvent', [val.containing, i])
             i++
           }
@@ -610,6 +618,103 @@ class PlayerInventory extends InventoryWindow {
   }
 }
 
+class DropDispenseInventory extends InventoryWindow {
+  windowId = 'DropDispense'
+  layout = [ layouts.DropDispense ]
+
+  dispenseItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  getWindowMap() {
+    return {}
+  }
+}
+
+class CraftingWin extends InventoryWindow {
+  windowId = 'CraftingTable'
+  layout = [ layouts.CraftingTable ]
+
+  craftingItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  getWindowMap() {
+    return {}
+  }
+}
+
+class ChestWin extends InventoryWindow {
+  windowId = 'Chest'
+  layout = [ layouts.Chest ]
+
+  chestItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  getWindowMap() {
+    return {}
+  }
+}
+
+class LargeChestWin extends InventoryWindow {
+  windowId = 'LargeChest'
+  layout = [ layouts.LargeChest ]
+
+  chestItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  getWindowMap() {
+    return {}
+  }
+}
+
+class FurnaceWin extends InventoryWindow {
+  windowId = 'Furnace'
+  layout = [ layouts.Furnace ]
+
+  inputSlot = []
+  fuelSlot = []
+  outputSlot = []
+  inventoryItems = []
+  hotbarItems = []
+
+  litProgress = -1//16
+  burnProgress = -1//22
+
+  constructor(...a) {
+    super(...a)
+
+    // let reversing = false
+
+    setInterval(() => {
+      this.litProgress++
+      this.burnProgress++
+      if (this.litProgress > 16) this.litProgress = 0
+      if (this.burnProgress > 22) this.burnProgress = 0
+      this.needsUpdate = true
+    }, 40)
+  }
+
+  getWindowMap() {
+    return {}
+  }
+}
+
+class HorseWin extends InventoryWindow {
+  windowId = 'Horse'
+  layout = [ layouts.Horse ]
+
+  hasChest = true
+  chestItems = []
+  inventoryItems = []
+  hotbarItems = []
+
+  getWindowMap() {
+    return {}
+  }
+}
 
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
@@ -630,7 +735,9 @@ canvasManager.setScale(4)
 //   hotbarSlots: [['minecraft:apple', 21], ['minecraft:axe', 1, { Damage: 22 }]]
 // })
 
-window.creative = new PlayerInventory(canvasManager, {})
+// window.creative = new PlayerInventory(canvasManager, {})
+window.creative = new HorseWin(canvasManager, {})
+
 
 setTimeout(() => {
   canvasManager.startRendering()

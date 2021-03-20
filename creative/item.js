@@ -281,7 +281,7 @@ class PWindow {
 const pwindow = new PWindow()
 
 setTimeout(() => {
-  window.manager = new PWindowManager(window.creative, pwindow)
+  // window.manager = new PWindowManager(window.creative, pwindow)
 }, 2200)
 
 function createWindowView(pwindow) {
