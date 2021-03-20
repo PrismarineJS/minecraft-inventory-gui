@@ -1,6 +1,6 @@
 import { getImage } from '../web/util.mjs'
 import { CanvasEventManager } from '../lib/CanvasManager.mjs'
-import * as InventoryWindows from '../lib/inventories'
+import * as InventoryWindows from '../lib/inventories.mjs'
 
 window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
@@ -13,7 +13,7 @@ window.inventory = new InventoryWindows.PlayerWin(canvasManager, {
 setTimeout(() => {
   canvasManager.startRendering()
   console.log('Rendering!')
-}, 1000)
+}, 2000)
 
 window.updateWin = () => {
   canvasManager.reset()

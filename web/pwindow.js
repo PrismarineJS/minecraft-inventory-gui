@@ -106,7 +106,7 @@ class PWindowManager {
         floating.count--
         this.setSlot(inventoryIndex, slot)
       }
-    } else {
+    } else if (slot) {
       this.win.floatingItem = slot.clone()
       const split = Math.ceil(slot.count / 2)
       slot.count -= split
