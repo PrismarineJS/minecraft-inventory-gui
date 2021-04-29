@@ -1,0 +1,29 @@
+{
+  "name": "minecraft-inventory-gui",
+  "version": "0.0.1",
+  "description": "Render Minecraft inventory GUIs in the browser",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "type": "module",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/extremeheat/minecraft-inventory-gui.git"
+  },
+  "keywords": [
+    "minecraft",
+    "inventory"
+  ],
+  "author": "extremeheat",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/extremeheat/minecraft-inventory-gui/issues"
+  },
+  "homepage": "https://github.com/extremeheat/minecraft-inventory-gui#readme"
+}
