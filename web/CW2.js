@@ -70,7 +70,7 @@ class CreativeWindowManager {
         } else {
           const { containerID, range } = this.map[containing]
           const slotIndex = range[0] + index
-          const container = this.inv.getContainer(containerID)
+          const container = this.inv.getContainerFromSlotType(containerID)
           if (!container) return
           const item = container.slots[slotIndex]
           this.onInventoryEvent(type, containing, containerID, slotIndex, item)
@@ -106,7 +106,7 @@ class CreativeWindowManager {
     for (const key in this.map) {
       const v = this.map[key]
       const [begin, end] = v.range
-      const cont = inv.getContainer(v.containerID)
+      const cont = inv.getContainerFromSlotType(v.containerID)
       if (cont) {
         this.win[key] = cont.slots.slice(begin, end != null ? end + 1 : undefined)
       }
@@ -346,13 +346,26 @@ serverInventory.send = packet => {
 
 function loadClientInv() {
   const openAll = invs => invs.forEach(inv => {
-    clientInventory.update(inv, [])
-    serverInventory.update(inv, [])
+    serverInventory.open(inv.windowID, inv.windowType)
+    clientInventory.open(inv.windowID, inv.windowType)
+
+    clientInventory.update(inv.windowID, [])
+    serverInventory.update(inv.windowID, [])
   })
 
+  openAll([
+    // The windowID is a sequential number linked to a window instance, windowType is a list from an enum
+    { windowID: 'cursor', windowType: 'cursor' },
+
+    { windowID: 'inventory', windowType: 'inventory' },
+    { windowID: 'armor', windowType: 'armor' },
+    { windowID: 'ui', windowType: 'hud' },
+    { windowID: 'offhand', windowType: 'hand' }
+  ])
+
   openAll(['cursor', 'hotbar_and_inventory', 'ui', 'armor', 'offhand', 'creative_output'])
-  clientInventory.update('hotbar_and_inventory', [new Item({ type: 'apple', count: 1 }), new Item({ type: 'arrow', count: 1 })])
-  serverInventory.update('hotbar_and_inventory', [new Item({ type: 'apple', count: 1 }), new Item({ type: 'arrow', count: 1 })])
+  clientInventory.update('inventory', [new Item({ type: 'apple', count: 1 }), new Item({ type: 'arrow', count: 1 })])
+  serverInventory.update('inventory', [new Item({ type: 'apple', count: 1 }), new Item({ type: 'arrow', count: 1 })])
 }
 
 loadClientInv()

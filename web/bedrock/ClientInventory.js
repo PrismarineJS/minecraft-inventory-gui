@@ -1,8 +1,12 @@
-import { Trans, InvManager, ServerInventory } from './Inventory2.js'
+import { Item, Trans, InvManager, ServerInventory } from './Inventory2.js'
 // import assert from 'assert'
 
 class Action {
   // constructor(type, )
+}
+
+export class TransactionError extends Error {
+
 }
 
 export class ClientInventory extends InvManager {
@@ -18,12 +22,12 @@ export class ClientInventory extends InvManager {
   ackCb
 
   get cursorItem() {
-    return this.tx ? this.tx.get('cursor', 0) : this.getContainer('cursor')?.slots[0]
+    return this.tx ? this.tx.get('cursor', 0) : this.getContainerFromSlotType('cursor')?.slots[0]
   }
 
   set cursorItem(val) {
     if (this.tx) this.tx.update('cursor', 0, { newItem: val })
-    else this.getContainer('cursor').slots[0] = val
+    else this.getContainerFromSlotType('cursor').slots[0] = val
   }
 
   startTransactionGroup() {
@@ -33,6 +37,7 @@ export class ClientInventory extends InvManager {
     if (this.isWaitingForAck()) {
       throw Error('Cannot start new transaction; waiting for previous ack')
     }
+    console.log('containers', this.containers)
     this.tx = new Trans(this.containers)
     this.transactionGroup = []
   }
@@ -69,34 +74,24 @@ export class ClientInventory extends InvManager {
     this.activeTransaction = null
   }
 
-  sendRequests(requests) {
-    const first = requests[0]
-    const txId = first.request_id
-  }
-
   nextStackId() {
     return this.#stackId++
-  }
-
-  accept() {
-    // No-op clientside
-  }
-
-  reject() {
-    // No-op clientside
   }
 
   handleResponse(responses) {
     let ok = true
     const trans = new Trans(this.containers)
     for (const response of responses) {
-      console.log('RESPONSE',response)
+      console.log('RESPONSE', response)
       const id = response.request_id
       this.recvRequestID = id
-      if (response.status != 'ok') ok = false      
+      if (response.status != 'ok') ok = false
       else if (response.status == 'ok') {
         const tx = this.sentTransactions[id]
-        // console.log('TRANS', response, trans, tx)
+        if (!tx) {
+          throw new TransactionError('Client received an inventory transaction response for an unknown request ID')
+        }
+        console.log('TRANS', response, trans, tx)
         if (this.tryApply(trans, tx)) {
           trans.apply()
         } else ok = false
@@ -129,6 +124,8 @@ export class ClientInventory extends InvManager {
       return false
       //throw Error('Cannot perform the requested actions')
     }
+    // console.log('OK!', JSON.stringify(trans))
+    // process.exit(1)
     this.sentTransactions[this.nextRequestId] = transaction
     this.activeTransaction = []
     return this.addTransactionToGroup(transaction)
@@ -150,9 +147,9 @@ export class ClientInventory extends InvManager {
   }
 
   creativeCreate(itemId, intoContainer, intoSlotIx, count) {
-    this.addTransaction({ type_id: 'craft_creative', slot_type: 'creative_output', slot: 50, item_id: itemId })
+    this.addTransaction({ type_id: 'craft_creative', slot: 50, item_id: itemId })
     this.addTransaction({
-      type_id: intoContainer == 'cursor' ? 'take' : 'place', slot_type: 'creative_output', count,
+      type_id: intoContainer == 'cursor' ? 'take' : 'place', count,
       source: { slot_type: "creative_output", slot: 50, stack_id: this.nextStackId() },
       destination: { slot_type: intoContainer, slot: intoSlotIx, stack_id: 0 },
     })
@@ -169,8 +166,8 @@ export class ClientInventory extends InvManager {
     // console.log('TX', containerId, sourceIndex, this.tx, this.tx.getContainer(containerId), this.tx.get(containerId, sourceIndex))
     const item = this.tx.get(containerId, sourceIndex)
     if (!item) {
-      // console.log(item, this.getContainer(containerId))
-      // console.log('nothing')
+      // console.log(item, this.tx.getContainerFromSlotType(containerId))
+      // console.log('nothing', containerId, sourceIndex, count)
       return false // Have nothing at slot, can't take !
     } else if (this.cursorItem) {
       if (this.cursorItem.type !== item.type) return false
@@ -190,7 +187,7 @@ export class ClientInventory extends InvManager {
   // Double click operation - pick up everything
   takeAll(containerId, itemType) {
     if (!this.tx) throw Error('Inactive transaction goup')
-    const win = this.tx.getContainer(containerId).slots
+    const win = this.tx.getContainerFromSlotType(containerId).slots
     if (!win.length) return false // don't know this inventory ID
     if (this.cursorItem && this.cursorItem.type != itemType) return false // items we want to pick up don't match what's in cursor
 
@@ -202,7 +199,7 @@ export class ClientInventory extends InvManager {
 
     // Pick up as much of the item until no more free space in cursor item
     for (let i = 0; i < win.length; i++) {
-      if (ok===false) { debugger; break }
+      if (ok === false) { debugger; break }
       const item = win[i]
       if (!item) continue
       if ((item.type !== itemType) || (cursor.type !== item.type)) continue
@@ -310,27 +307,6 @@ export class ClientInventory extends InvManager {
   }
 }
 
-export class Item {
-  constructor(obj) {
-    Object.assign(this, obj); 
-    this._count = obj.count || obj._count; if (!this._count) debugger;
-    this.random = (Math.random()*100)|0
-  }
-  set count(val) {
-//     console.trace('set count', this.random, val)
-    this._count = val
-  }
-  get count() {
-    return this._count
-  }
-  clone() {
-    return new Item(JSON.parse(JSON.stringify(this)))
-  }
-  freeSlots() {
-    return 64 - this.count
-  }
-}
-
 function clientInventoryTest() {
   const clientInventory = new ClientInventory()
   const serverInventory = new ServerInventory()
@@ -350,7 +326,7 @@ function clientInventoryTest() {
   serverInventory.client = cl
 
   clientInventory.send = (packet) => {
-    console.log('Client outbound', JSON.stringify(packet,null,2))
+    console.log('Client outbound', JSON.stringify(packet, null, 2))
     console.log('Clientbound')
     serverInventory.handle(packet)
   }
@@ -360,28 +336,89 @@ function clientInventoryTest() {
   }
 
   const openAll = invs => invs.forEach(inv => {
-    clientInventory.update(inv, [])
-    serverInventory.update(inv, [])
+    serverInventory.open(inv.windowID, inv.windowType)
+    clientInventory.open(inv.windowID, inv.windowType)
+
+    clientInventory.update(inv.windowID, [])
+    serverInventory.update(inv.windowID, [])
   })
 
-  openAll(['cursor', 'hotbar_and_inventory', 'ui', 'armor', 'offhand', 'creative_output'])
+  openAll([
+    // The windowID is a sequential number linked to a window instance, windowType is a list from an enum
+    { windowID: 'cursor', windowType: 'cursor' },
 
-  clientInventory.startTransactionGroup()
+    { windowID: 'inventory', windowType: 'inventory' },
+    { windowID: 'armor', windowType: 'armor' },
+    { windowID: 'ui', windowType: 'hud' },
+    { windowID: 'offhand', windowType: 'hand' }
+  ])
 
-  assert.ok(clientInventory.creativeCreate(64, 'hotbar_and_inventory', 0, 32)) // Create an item.
-  // clientInventory.finishTransactionGroup()
-  // clientInventory.startTransactionGroup()
-  assert.ok(clientInventory.take('hotbar_and_inventory', 0, 16)) // Create an item.
+  // invnetory
+  // armor
+  // ui
+  // offhand
+  openAll(['cursor', 'inventory', 'ui', 'armor', 'offhand', 'creative_output'])
 
-  assert.ok(clientInventory.place('cursor', 0, 'hotbar_and_inventory', 0, 8)) // Swap
+  function testTx() {
+    clientInventory.startTransactionGroup()
 
-  assert.ok(clientInventory.swap('hotbar_and_inventory', 0, 'hotbar_and_inventory', 20)) // Swap
+    assert.ok(clientInventory.creativeCreate(64, 'hotbar_and_inventory', 0, 32)) // Create an item.
+    // clientInventory.finishTransactionGroup()
+    // clientInventory.startTransactionGroup()
+    assert.ok(clientInventory.take('hotbar_and_inventory', 0, 16)) // Create an item.
 
-  assert.ok(clientInventory.takeAll('hotbar_and_inventory', 64)) // Swap
+    // clientInventory.finishTransactionGroup()
 
-  // assert.ok(clientInventory.drop('hotbar_and_inventory', 20, 4)) // Swap
+    // clientInventory.dump()
+    // process.exit(1)
 
-  clientInventory.finishTransactionGroup()  
+    assert.ok(clientInventory.place('cursor', 0, 'hotbar_and_inventory', 0, 8)) // Swap
+
+    assert.ok(clientInventory.swap('hotbar_and_inventory', 0, 'hotbar_and_inventory', 20)) // Swap
+
+    assert.ok(clientInventory.takeAll('hotbar_and_inventory', 64)) // Swap
+
+    // assert.ok(clientInventory.drop('hotbar_and_inventory', 20, 4)) // Swap
+
+    clientInventory.finishTransactionGroup()
+    clientInventory.dump()
+  }
+
+  async function testReplay() {
+    const rp = (await import('./replay.js')).replay
+    console.log(rp)
+    for (let i = 0; i < rp.length; i++) {
+      const packet = rp[i]
+      const next = rp[i + 1]
+      if (packet.name === 'inventory_content') {
+        const d = packet.params
+        clientInventory.update(d.window_id, d.input)
+        serverInventory.update(d.window_id, d.input)
+        console.log('server inv updated', d.window_id, d.input)
+      } else if (packet.name.includes('request')) {
+        console.log('handling c>s', JSON.stringify(packet))
+        serverInventory.send = packet => {
+          console.log('Our server response', JSON.stringify(packet))
+          console.log('Vanilla server response', JSON.stringify(next.params.responses))
+        }
+
+        serverInventory.handle(packet.params.requests)
+        // process.exit(1)
+      } else if (packet.name.includes('response')) {
+        // clientInventory.send = pack => {
+        //   console.log('Our Client response', pack)
+        //   console.log('Vanilla client response', JSON.stringify())
+        // }
+        clientInventory.handleResponse(packet.params.responses)
+
+        // for (const resp of packet.params.responses) {
+        // }
+        process.exit(1)
+      }
+    }
+  }
+  // x={"params":{"requests":[{"custom_names":[],"actions":[{"count":64,"source":{"slot":0,"stack_id":145,"slot_type":"hotbar"},"destination":{"slot":9,"stack_id":0,"slot_type":"inventory"},"type_id":"place"}],"request_id":1569}]},"name":"item_stack_request"}
+  testReplay()
 }
 
-// clientInventoryTest() 
+clientInventoryTest()
