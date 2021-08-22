@@ -2,11 +2,11 @@
 
 minecraft-inventory-gui provides a GUI library to interact with minecraft inventories. It does not by itself implement _any_ inventory logic such as clicks, shift clicking, etc. and this is left to the user. This allows the lib to be used in a wide variety of environments, and across different editions of the game.
 
-At this moment in time, the usage for the library looks like this:
+At this moment in time, the usage for the library looks like this (ES6 import required, in the future we may export a WebComponent):
 
 ```js
-import { CanvasEventManager } from 'minecraft-inventory-gui/lib/CanvasManager.mjs'
-import * as InventoryWindows from 'minecraft-inventory-gui/lib/inventories.mjs'
+import { CanvasEventManager } from 'minecraft-inventory-gui'
+import * as InventoryWindows from 'minecraft-inventory-gui'
 ```
 
 The CanvasEventManager provides an interface to interact with a DOM canvas and handles events such as cursor drags, clicks, etc.
