@@ -4,6 +4,10 @@ minecraft-inventory-gui provides a GUI library to interact with minecraft invent
 
 At this moment in time, the usage for the library looks like this (ES6 import required, in the future we may export a WebComponent):
 
+```sh
+npm i extremeheat/minecraft-inventory-gui
+```
+
 ```js
 import { CanvasEventManager } from 'minecraft-inventory-gui'
 import * as InventoryWindows from 'minecraft-inventory-gui'

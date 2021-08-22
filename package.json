@@ -2,7 +2,7 @@
   "name": "minecraft-inventory-gui",
   "version": "0.0.1",
   "description": "Render Minecraft inventory GUIs in the browser",
-  "main": "index.js",
+  "main": "index.mjs",
   "directories": {
     "lib": "lib"
   },
