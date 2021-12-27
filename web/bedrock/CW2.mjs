@@ -1,5 +1,5 @@
-import { Item, ClientInventory } from './bedrock/ClientInventory.js'
-import { ServerInventory } from './bedrock/Inventory2.js'
+import { Item, ClientInventory } from './ClientInventory.js'
+import { ServerInventory } from './Inventory2.js'
 
 window.inventory.getImageIcon = (item) => {
   const itemId = item.type
@@ -102,7 +102,6 @@ class CreativeWindowManager {
   }
 
   renderItems(inv = this.inv) {
-    console.log('RENDERING')
     for (const key in this.map) {
       const v = this.map[key]
       const [begin, end] = v.range
@@ -118,7 +117,7 @@ class CreativeWindowManager {
   onTabChange = (now, old) => {
     const items = []
     const content = this.inv.creative
-    console.log('Cont', content)
+    console.log('Tab change contents', content)
     for (const itemId in content) {
       const val = content[itemId]
       for (const [our, their] of creativeMap) {
@@ -160,7 +159,6 @@ class CreativeWindowManager {
   onLeftClick(containerID, inventoryIndex, placeItem) {
     try { this.inv.startTransactionGroup() } catch { return }
     const cursorItem = this.inv.cursorItem
-    // console.log('cursor', cursorItem, placeItem)
     if (cursorItem) { // have cursor item
       if (placeItem) { // swap
         if (placeItem.type == cursorItem.type) {
@@ -258,7 +256,7 @@ class CreativeWindowManager {
   }
 
   onInventoryEvent = async (type, containing, containerID, inventoryIndex, item) => {
-    console.log('INV E', type, containing, containerID, inventoryIndex, item, this.win._downKeys.has('ShiftLeft'))
+    console.log('InvEvent', type, containing, containerID, inventoryIndex, item, this.win._downKeys.has('ShiftLeft'))
     try { await this.waitForServerAck() } catch { return }
     const floating = this.win.floatingItem
 
@@ -319,7 +317,7 @@ class CreativeWindowManager {
     this.mouseDownFloat = null
   }
 }
-console.log = () => {}
+
 const clientInventory = new ClientInventory()
 const serverInventory = new ServerInventory()
 const cl = {

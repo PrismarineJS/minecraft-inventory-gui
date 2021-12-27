@@ -249,7 +249,7 @@ class Item {
   constructor(type, count) {
     this.type = type
     this.count = count
-
+    this.displayName = type
     this.stackSize = 64
   }
   clone() {

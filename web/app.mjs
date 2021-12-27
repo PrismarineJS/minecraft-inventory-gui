@@ -6,8 +6,21 @@ window.canvas = document.getElementById('demo')
 var canvasManager = new CanvasEventManager(canvas)
 canvasManager.setScale(3.5)
 
+const getImageIcon = (item) => {
+  const items = [
+    'item/brick',
+    'block/brain_coral',
+    'item/redstone',
+    'block/powered_rail_on',
+    'block/bookshelf',
+    'item/apple',
+    'item/compass_00'
+  ]
+  return { path: items[item.type], tip: 'item name here' }
+}
+
 window.inventory = new InventoryWindows.PlayerWin(canvasManager, {
-    getImage
+  getImage, getImageIcon
 })
 
 setTimeout(() => {
