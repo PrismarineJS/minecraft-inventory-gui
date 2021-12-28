@@ -1,5 +1,5 @@
 # minecraft-inventory-gui
-[![NPM version](https://badge.fury.io/js/minecraft-inventory-gui.svg)](http://badge.fury.io/js/minecraft-inventory-gui)
+[![NPM version](https://badge.fury.io/js/minecraft-inventory-gui.svg)](https://www.npmjs.com/package/minecraft-inventory-gui)
 [![Build Status](https://github.com/PrismarineJS/minecraft-inventory-gui/workflows/CI/badge.svg)](https://github.com/PrismarineJS/minecraft-inventory-gui/actions?query=workflow%3A%22CI%22)
 
 minecraft-inventory-gui provides a GUI library to interact with minecraft inventories. It does not by itself implement _any_ inventory logic such as clicks, shift clicking, etc. and this is left to the user. This allows the lib to be used in a wide variety of environments, and across different editions of the game.
