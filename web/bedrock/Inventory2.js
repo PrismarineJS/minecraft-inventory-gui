@@ -1,5 +1,5 @@
 // import assert from 'assert'
-function fail() { debugger; return false }
+function fail () { debugger; return false }
 
 console.assert = (condition, message) => {
   if (!condition) throw new Error(message)
@@ -7,46 +7,49 @@ console.assert = (condition, message) => {
 
 export class Item {
   static nextId = 200
-  constructor(obj) {
+  constructor (obj) {
     // this.assignId()
-    Object.assign(this, obj); 
-    this._count = obj.count || obj._count; if (!this._count && obj.network_id) debugger;
-    this.random = (Math.random()*100)|0
+    Object.assign(this, obj)
+    this._count = obj.count || obj._count; if (!this._count && obj.network_id) debugger
+    this.random = (Math.random() * 100) | 0
   }
 
-  assignId() {
+  assignId () {
     this.stack_id = Item.nextId++
   }
 
-  set count(val) {
-//     console.trace('set count', this.random, val)
+  set count (val) {
+    //     console.trace('set count', this.random, val)
     this._count = val
   }
-  get count() {
+
+  get count () {
     return this._count || 0
   }
-  clone() {
+
+  clone () {
     return new Item(JSON.parse(JSON.stringify(this)))
   }
-  freeSlots() {
+
+  freeSlots () {
     return 64 - this.count
   }
 }
 
 export class Container {
   // Call `Container.from`, do *not* do `new Container`
-  constructor(windowId, windowType, slots) {
+  constructor (windowId, windowType, slots) {
     this.id = windowId
     this.type = windowType
     this.slots = slots
     this.metadata = this[windowType]
   }
 
-  static from(windowId, windowType, slots) {
+  static from (windowId, windowType, slots) {
     return new ({ furnace: Furnace, brewing_stand: BrewingStand }[windowType] ?? Container)(windowId, windowType, slots)
   }
 
-  setMetadata(id, val) {
+  setMetadata (id, val) {
     const m = this.map[id]
     this[m] = val
   }
@@ -84,16 +87,16 @@ export class BrewingStand extends Container {
 const slotMap = {
   // windowType: { slotType: 'ContainerSlotType', range: map of ContainerID+WindowType slot to ContainerSlotType idx }
 
-  cursor: [{ slotType: 'cursor', range: [0,1] }],
-  armor: [{ slotType: 'armor', range: [0,4] }],
-  hand: [{ slotType: 'offhand', range: [0,1] }],
+  cursor: [{ slotType: 'cursor', range: [0, 1] }],
+  armor: [{ slotType: 'armor', range: [0, 4] }],
+  hand: [{ slotType: 'offhand', range: [0, 1] }],
 
-  container: [{ slotType: 'container', range: [0,27] }],
-  inventory: [{ slotType: 'hotbar_and_inventory', range: [0,36] }, { slotType: 'inventory', range:[9,36] }, { slotType: 'hotbar', range: [0,8] }],
+  container: [{ slotType: 'container', range: [0, 27] }],
+  inventory: [{ slotType: 'hotbar_and_inventory', range: [0, 36] }, { slotType: 'inventory', range: [9, 36] }, { slotType: 'hotbar', range: [0, 8] }],
   workbench: [{ slotType: 'crafting_input', range: [0, 3] }],
 
-  furnace: [{ slotType: "furnace_fuel", range: [1] }, { slotType: "furnace_ingredient", slot: [0] }],
-  enchantment: [{ slotType: "enchanting_lapis", range: [15] }, { slotType: "enchanting_input", range: [14] }],
+  furnace: [{ slotType: 'furnace_fuel', range: [1] }, { slotType: 'furnace_ingredient', slot: [0] }],
+  enchantment: [{ slotType: 'enchanting_lapis', range: [15] }, { slotType: 'enchanting_input', range: [14] }],
   brewing_stand: [{ slotType: 'brewing_input', range: [1, 3] }, { slotType: 'brewing_fuel', range: [4] }],
   anvil: [{ slotType: 'anvil_input', range: [1] }, { slotType: 'anvil_material', range: [2] }],
 
@@ -101,11 +104,11 @@ const slotMap = {
   dropper: [{ slotType: 'container', range: [0, 8] }],
   hopper: [{ slotType: 'container', range: [0, 4] }],
 
-  minecart_hopper: [{ slotType: 'container', range: [0, 4] }],
+  minecart_hopper: [{ slotType: 'container', range: [0, 4] }]
 }
 
 // open = {1:{type:'inventory'}}
-export function slotType2windowId(openContainers, slotType) {
+export function slotType2windowId (openContainers, slotType) {
 //   console.trace(openContainers)
   // process.exit(1)
   for (const openContainer of Object.values(openContainers)) {
@@ -130,7 +133,7 @@ export function slotType2windowId(openContainers, slotType) {
  * confirmed. If the server rejects, the Trans state held here is discarded and not applied.
  */
 export class Trans {
-  constructor(containers, id, actions) {
+  constructor (containers, id, actions) {
     this.containers = containers
     this.updated = {}
     this.updates = {}
@@ -141,7 +144,7 @@ export class Trans {
   /**
    * Gets the slot in container, either from the updated slot list or from the base inv
    */
-  get(slotType, slotIndex) {
+  get (slotType, slotIndex) {
     return this.getContainerFromSlotType(slotType).slots[slotIndex]
     // console.log('get', this.updated[container], this.containers[container], container, slotIndex)
     // return this.updated[container]?.slots?.[slotIndex] ?? this.containers[container]?.slots?.[slotIndex]
@@ -150,7 +153,7 @@ export class Trans {
   /**
    * Returns the raw data for the WindowID
    */
-  getWindow(windowId) {
+  getWindow (windowId) {
     const slots = []
     this.containers[windowId]?.slots.forEach((v, k) => slots[k] = v)
     this.updated[windowId]?.slots.forEach((v, k) => { if (v) slots[k] = v })
@@ -160,7 +163,7 @@ export class Trans {
   /**
    * Merge the two containers (updated+base) and get an object like in Inventory. Returns container from slotType.
    */
-  getContainerFromSlotType(slotType) {
+  getContainerFromSlotType (slotType) {
     const winId = slotType2windowId({ ...this.containers, ...this.updated }, slotType)
     return this.getWindow(winId)
   }
@@ -168,10 +171,10 @@ export class Trans {
   /**
    * Updates a slot in the Trans state.
    */
-  update(slotType, slotIndex, { newItem }) {
+  update (slotType, slotIndex, { newItem }) {
     console.log('SetSlot', slotType, slotIndex, newItem)
-    const winId = slotType2windowId({...this.containers, ...this.updated}, slotType);
-    const container =  this.containers[winId]
+    const winId = slotType2windowId({ ...this.containers, ...this.updated }, slotType)
+    const container = this.containers[winId]
     this.updated[winId] ??= new Container(winId, container.type, [])
     if (newItem) newItem.modSlot = slotType // temporary as we have no way to reverse slotType2WindowId
     this.updated[winId].slots[slotIndex] = newItem?.count ? newItem : null
@@ -182,21 +185,21 @@ export class Trans {
   /**
    * Update metadata for a specific container, for example fuel burn time for a furnace
    */
-  updateMetadata(windowId, keyId, val) {
-    const container =  this.containers[windowId]
+  updateMetadata (windowId, keyId, val) {
+    const container = this.containers[windowId]
     container.setMetadata(keyId, val)
   }
 
   /**
    * Apply the Trans state to the base inventory. Returns server responses.
    */
-  apply() {
+  apply () {
     console.log('applying', this.updated)
     const accepted = {}
     for (const key in this.updated) {
       const updatedContainer = this.updated[key].slots
       for (let i = 0; i < updatedContainer.length; i++) {
-        let v = updatedContainer[i]
+        const v = updatedContainer[i]
         if (v !== undefined) {
           console.log('set', key, i, v, this.containers)
           this.containers[key].slots[i] = v
@@ -240,36 +243,36 @@ export class Trans {
 export class InvManager {
   containers = {}
 
-  constructor() {
+  constructor () {
 
   }
 
-  addContainer(container) {
+  addContainer (container) {
     this.containers[container]
   }
 
-  getContainerFromSlotType(slotType) {
+  getContainerFromSlotType (slotType) {
     const winId = slotType2windowId(this.containers, slotType)
     return this.containers[winId]
   }
 
-  getContainer(windowId) {
+  getContainer (windowId) {
     return this.containers[windowId]
   }
 
-  open(windowId, windowType, pos, entityId) {
+  open (windowId, windowType, pos, entityId) {
     this.containers[windowId] ??= new Container(windowId, windowType, [])
     this.containers[windowId].type = windowType
     this.containers[windowId].entityId = entityId
     this.containers[windowId].pos = pos
   }
 
-  update(windowId, content) {
+  update (windowId, content) {
     const items = content.map(k => k instanceof Item ? k : new Item(k))
     this.containers[windowId].slots = items
   }
 
-  dump() {
+  dump () {
     console.log('inv', new Date().toLocaleTimeString())
     console.log(this.containers)
   }
@@ -285,47 +288,49 @@ export class InvManager {
     craft_creative: this.acceptCraftCreative.bind(this)
   }
 
-  tryApply(trans, transaction) {
+  tryApply (trans, transaction) {
     // console.trace('apply', transaction)
 
     // The first transaction to complete.
     const firstAction = transaction.actions[0]
-    if (!firstAction) return // nothing to do    
+    if (!firstAction) return // nothing to do
 
     // console.log('FA', firstAction)
     if (firstAction.type_id === 'craft_recipe') {
       return this.acceptCraftRecipe(transaction.actions, trans)
     } else if (firstAction.type_id === 'craft_creative') {
       return this.acceptCraftCreative(transaction.actions, trans)
-    } else for (const action of transaction.actions) {
-      console.log('handling action', action)
-      if (!this.handlers[action.type_id]) {
-        console.warn('unknown action', action.type_id)
-        return false
-      }
-      const ret = this.handlers[action.type_id](action, trans)
-      if (!ret) {
-        console.log('failed action!')
-        throw Error('failed')
-        return false
+    } else {
+      for (const action of transaction.actions) {
+        console.log('handling action', action)
+        if (!this.handlers[action.type_id]) {
+          console.warn('unknown action', action.type_id)
+          return false
+        }
+        const ret = this.handlers[action.type_id](action, trans)
+        if (!ret) {
+          console.log('failed action!')
+          throw Error('failed')
+          return false
+        }
       }
     }
 
     return trans
   }
 
-  acceptTakeOrPlace(action, trans) {
+  acceptTakeOrPlace (action, trans) {
     // console.log(JSON.stringify(trans))
     const source = trans.get(action.source.slot_type, action.source.slot)
     const dest = trans.get(action.destination.slot_type, action.destination.slot)
     if (!source && dest) return fail() // no item in source slot
     if (dest && dest.network_id && source.network_id !== dest.network_id) return fail() // dest item exists but it's a different type
     console.assert(action.count, 'take empty count')
-//     console.log(action)
+    //     console.log(action)
     if (!source) {
       console.log('item does not exist at source', this.containers, action.source.slot_type, trans.getContainerFromSlotType(action.source.slot_type))
     }
-//     console.log(source)
+    //     console.log(source)
     const sourceClone = source.clone()
 
     sourceClone.count -= action.count
@@ -347,14 +352,13 @@ export class InvManager {
     destClone.count += action.count
     if (destClone.freeSlots() < 0) return fail() // not enough slots
 
-
     // OK
     trans.update(action.source.slot_type, action.source.slot, { newItem: sourceClone })
     trans.update(action.destination.slot_type, action.destination.slot, { newItem: destClone })
     return true
   }
 
-  acceptSwap(action, trans) {
+  acceptSwap (action, trans) {
     const source = trans.get(action.source.slot_type, action.source.slot)
     const dest = trans.get(action.destination.slot_type, action.destination.slot)
     console.assert(source || dest)
@@ -364,7 +368,7 @@ export class InvManager {
     return true
   }
 
-  acceptDropOrDestoryOrConsume(action, trans) {
+  acceptDropOrDestoryOrConsume (action, trans) {
     const source = trans.get(action.source.slot_type, action.source.slot)
     if (!source) return false // nothing to drop
 
@@ -378,7 +382,7 @@ export class InvManager {
     return true
   }
 
-  acceptCraftRecipe(actions, trans) {
+  acceptCraftRecipe (actions, trans) {
     let recipe, output
     const inputs = []
     for (const action of actions) {
@@ -395,7 +399,8 @@ export class InvManager {
 
     const verified = this.client.tryCraftRecipe({
       recipe: recipe.recipe_network_id,
-      inputs, outputQuantity: output.count
+      inputs,
+      outputQuantity: output.count
     })
 
     if (verified) {
@@ -407,7 +412,7 @@ export class InvManager {
   }
 
   // The client wants to add something from creative inventory
-  acceptCraftCreative(actions, trans) {
+  acceptCraftCreative (actions, trans) {
     // console.trace(actions)
     let recipe, output
     for (const action of actions) {
@@ -430,25 +435,23 @@ export class InvManager {
   }
 }
 
-
-
 export class ServerInventory extends InvManager {
-  startResponseGroup() {
+  startResponseGroup () {
     this.responseGroup = []
   }
 
-  finishResponseGroup() {
+  finishResponseGroup () {
     console.log('SERVER', JSON.stringify(this.containers))
     this.send(this.responseGroup)
     this.responseGroup = []
   }
 
-  addResponseToGroup(response) {
+  addResponseToGroup (response) {
     // console.log('RESPONSE', response)
     this.responseGroup.push(response)
   }
 
-  accept(requestId, containers) {
+  accept (requestId, containers) {
     this.addResponseToGroup({
       status: 'ok',
       request_id: requestId,
@@ -456,14 +459,14 @@ export class ServerInventory extends InvManager {
     })
   }
 
-  reject(request) {
+  reject (request) {
     this.addResponseToGroup({
       status: 'error',
       request_id: request.request_id
     })
   }
 
-  handle(requests) {
+  handle (requests) {
     this.startResponseGroup()
     console.log('containers before handling', this.containers)
     const tx = new Trans(this.containers)
@@ -488,7 +491,7 @@ export class ServerInventory extends InvManager {
   }
 }
 
-function inventoryTest() {
+function inventoryTest () {
   const inv = new InvManager()
   inv.addContainer(new Container('hotbar_and_inventory', 64))
   inv.getContainer()

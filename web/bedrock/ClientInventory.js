@@ -21,16 +21,16 @@ export class ClientInventory extends InvManager {
 
   ackCb
 
-  get cursorItem() {
+  get cursorItem () {
     return this.tx ? this.tx.get('cursor', 0) : this.getContainerFromSlotType('cursor')?.slots[0]
   }
 
-  set cursorItem(val) {
+  set cursorItem (val) {
     if (this.tx) this.tx.update('cursor', 0, { newItem: val })
     else this.getContainerFromSlotType('cursor').slots[0] = val
   }
 
-  startTransactionGroup() {
+  startTransactionGroup () {
     if (this.transactionGroup?.length) {
       this.finishTransactionGroup()
     }
@@ -42,7 +42,7 @@ export class ClientInventory extends InvManager {
     this.transactionGroup = []
   }
 
-  finishTransactionGroup(responseCb) {
+  finishTransactionGroup (responseCb) {
     if (this.transactionGroup.length) {
       this.sendRequestID = this.transactionGroup[this.transactionGroup.length - 1].request_id
       this.ackCb = responseCb
@@ -53,32 +53,32 @@ export class ClientInventory extends InvManager {
     return true
   }
 
-  eraseTransaction() {
+  eraseTransaction () {
     this.transactionGroup = []
     this.activeTransaction = []
   }
 
-  addTransactionToGroup(transaction) {
+  addTransactionToGroup (transaction) {
     this.transactionGroup.push(transaction)
     console.log('SEND REQ', transaction, this.sendRequestID)
     return this.nextRequestId++
   }
 
-  sendRequest() {
+  sendRequest () {
     const txId = this.nextRequestId++
     this.send([{
-      "request_id": txId,
-      "actions": this.activeTransaction,
-      "custom_names": []
+      request_id: txId,
+      actions: this.activeTransaction,
+      custom_names: []
     }])
     this.activeTransaction = null
   }
 
-  nextStackId() {
+  nextStackId () {
     return this.#stackId++
   }
 
-  handleResponse(responses) {
+  handleResponse (responses) {
     let ok = true
     const trans = new Trans(this.containers)
     for (const response of responses) {
@@ -102,27 +102,27 @@ export class ClientInventory extends InvManager {
     // console.log('------', JSON.stringify(this.containers))
   }
 
-  handleAccept(id) {
+  handleAccept (id) {
     const tx = this.sentTransactions[id]
     tx.apply()
     tx.resolve(true)
     delete this.sentTransactions[id]
   }
 
-  handleReject(id) {
+  handleReject (id) {
     const tx = this.sentTransactions[id]
     tx.resolve(false)
     delete this.sentTransactions[id]
   }
 
-  finishTransaction() {
+  finishTransaction () {
     const transaction = { request_id: this.nextRequestId, actions: this.activeTransaction, custom_names: [] }
     const trans = this.tx// || new Trans(this.containers, this.nextRequestId)
     const tx = this.tryApply(trans, transaction)
     if (!tx) {
       this.eraseTransaction()
       return false
-      //throw Error('Cannot perform the requested actions')
+      // throw Error('Cannot perform the requested actions')
     }
     // console.log('OK!', JSON.stringify(trans))
     // process.exit(1)
@@ -131,37 +131,38 @@ export class ClientInventory extends InvManager {
     return this.addTransactionToGroup(transaction)
   }
 
-  isWaitingForAck() {
+  isWaitingForAck () {
     // console.log('ida',this.sendRequestID, this.recvRequestID)
     if (this.sendRequestID > this.recvRequestID) return true
     return false
   }
 
-  addTransaction(transaction) {
+  addTransaction (transaction) {
     // console.trace('ADD TRANS',this.transactionGroup, this.isWaitingForAck())
-    if (/*this.transactionGroup.length ||*/ this.isWaitingForAck()) {
+    if (/* this.transactionGroup.length || */ this.isWaitingForAck()) {
       throw Error('Already have a queued request') // Need to send queued request + wait for ACK
     }
     this.activeTransaction ??= []
     this.activeTransaction.push(transaction)
   }
 
-  creativeCreate(itemId, intoContainer, intoSlotIx, count) {
+  creativeCreate (itemId, intoContainer, intoSlotIx, count) {
     this.addTransaction({ type_id: 'craft_creative', slot: 50, item_id: itemId })
     this.addTransaction({
-      type_id: intoContainer == 'cursor' ? 'take' : 'place', count,
-      source: { slot_type: "creative_output", slot: 50, stack_id: this.nextStackId() },
-      destination: { slot_type: intoContainer, slot: intoSlotIx, stack_id: 0 },
+      type_id: intoContainer == 'cursor' ? 'take' : 'place',
+      count,
+      source: { slot_type: 'creative_output', slot: 50, stack_id: this.nextStackId() },
+      destination: { slot_type: intoContainer, slot: intoSlotIx, stack_id: 0 }
     })
     return this.finishTransaction()
   }
 
   // CLIENT OUTBOUND
 
-  // Below are request functions 
+  // Below are request functions
 
   // Picks an item up and puts it into the 'cursor' item which must be free/same type
-  take(containerId, sourceIndex, count) {
+  take (containerId, sourceIndex, count) {
     if (!this.tx) throw Error('Inactive transaction goup')
     // console.log('TX', containerId, sourceIndex, this.tx, this.tx.getContainer(containerId), this.tx.get(containerId, sourceIndex))
     const item = this.tx.get(containerId, sourceIndex)
@@ -175,9 +176,10 @@ export class ClientInventory extends InvManager {
     }
 
     this.addTransaction({
-      type_id: "take", count,
+      type_id: 'take',
+      count,
       source: { slot_type: containerId, slot: sourceIndex, stack_id: item.stackId },
-      destination: { slot_type: "cursor", slot: 0, stack_id: this.nextStackId() },
+      destination: { slot_type: 'cursor', slot: 0, stack_id: this.nextStackId() }
     })
 
     // console.log('Finishing')
@@ -185,7 +187,7 @@ export class ClientInventory extends InvManager {
   }
 
   // Double click operation - pick up everything
-  takeAll(containerId, itemType) {
+  takeAll (containerId, itemType) {
     if (!this.tx) throw Error('Inactive transaction goup')
     const win = this.tx.getContainerFromSlotType(containerId).slots
     if (!win.length) return false // don't know this inventory ID
@@ -209,9 +211,10 @@ export class ClientInventory extends InvManager {
       cursor.count += item.count
 
       this.addTransaction({
-        type_id: "take", count: item.count,
-        destination: { slot_type: "cursor", slot: 0, stack_id: this.nextStackId() },
-        source: { slot_type: containerId, slot: i, stack_id: item.stackId },
+        type_id: 'take',
+        count: item.count,
+        destination: { slot_type: 'cursor', slot: 0, stack_id: this.nextStackId() },
+        source: { slot_type: containerId, slot: i, stack_id: item.stackId }
       })
 
       ok = this.finishTransaction()
@@ -221,7 +224,7 @@ export class ClientInventory extends InvManager {
   }
 
   // Places a picked up item
-  place(fromContainerId, fromSlot, destContainerId, destSlot, count) {
+  place (fromContainerId, fromSlot, destContainerId, destSlot, count) {
     if (!this.tx) throw Error('Inactive transaction goup')
     const from = this.tx.get(fromContainerId, fromSlot)
     if (!from) return false // don't have any item in the from slot to place from
@@ -229,7 +232,8 @@ export class ClientInventory extends InvManager {
     if (to && to.type !== from.type) return false // already have a slot in the destination slot
     const destStackId = to ? to.slot : this.nextStackId()
     this.addTransaction({
-      type_id: 'place', count,
+      type_id: 'place',
+      count,
       source: { slot_type: fromContainerId, slot: fromSlot, stack_id: from.stackId },
       destination: { slot_type: destContainerId, slot: destSlot, stack_id: destStackId }
     })
@@ -237,7 +241,7 @@ export class ClientInventory extends InvManager {
   }
 
   // Switches items
-  swap(fromContainerId, fromSlotIx, destContainerId, destSlotIx) {
+  swap (fromContainerId, fromSlotIx, destContainerId, destSlotIx) {
     if (!this.tx) throw Error('Inactive transaction goup')
     const from = this.tx.get(fromContainerId, fromSlotIx)
     if (!from) return false // no item at place, you need to pickup() instead
@@ -251,39 +255,43 @@ export class ClientInventory extends InvManager {
     return this.finishTransaction()
   }
 
-  drop(containerId, slotIx, count, randomly) {
+  drop (containerId, slotIx, count, randomly) {
     if (!this.tx) throw Error('Inactive transaction goup')
     const from = this.tx.get(containerId, slotIx)
     if (!from) return false // no item in slot
     this.addTransaction({
-      type_id: 'drop', count, randomly,
-      source: { slot_type: containerId, slot: slotIx, stack_id: from.stackId },
-    })
-    return this.finishTransaction()
-  }
-
-  destroy(containerId, slotIx, count) {
-    if (!this.tx) throw Error('Inactive transaction goup')
-    const from = this.tx.get(containerId, slotIx)
-    if (!from) return false // no item in slot
-    this.addTransaction({
-      type_id: 'destroy', count,
+      type_id: 'drop',
+      count,
+      randomly,
       source: { slot_type: containerId, slot: slotIx, stack_id: from.stackId }
     })
     return this.finishTransaction()
   }
 
-  consume(containerId, slotIx, count) {
+  destroy (containerId, slotIx, count) {
     if (!this.tx) throw Error('Inactive transaction goup')
     const from = this.tx.get(containerId, slotIx)
+    if (!from) return false // no item in slot
     this.addTransaction({
-      type_id: 'consume', count,
+      type_id: 'destroy',
+      count,
       source: { slot_type: containerId, slot: slotIx, stack_id: from.stackId }
     })
     return this.finishTransaction()
   }
 
-  craft(containerId, slots, recipeId, resultCount) {
+  consume (containerId, slotIx, count) {
+    if (!this.tx) throw Error('Inactive transaction goup')
+    const from = this.tx.get(containerId, slotIx)
+    this.addTransaction({
+      type_id: 'consume',
+      count,
+      source: { slot_type: containerId, slot: slotIx, stack_id: from.stackId }
+    })
+    return this.finishTransaction()
+  }
+
+  craft (containerId, slots, recipeId, resultCount) {
     if (!this.tx) throw Error('Inactive transaction goup')
     // First we request to craft the recipe
     this.addTransaction({
@@ -293,21 +301,23 @@ export class ClientInventory extends InvManager {
     for (const { slot, count } of slots) {
       const from = this.tx.get(containerId, slot)
       this.addTransaction({
-        type_id: 'consume', count,
+        type_id: 'consume',
+        count,
         source: { slot_type: containerId, slot: slot, stack_id: from.stackId }
       })
     }
     // Request to put the output into the cursor
     this.addTransaction({
-      type_id: 'take', count: resultCount,
+      type_id: 'take',
+      count: resultCount,
       source: { slot_type: 'creative_output', slot: 50, stack_id: this.nextStackId() },
-      destination: { slot_type: 'cursor', slot: 0, stack_id: 0 },
+      destination: { slot_type: 'cursor', slot: 0, stack_id: 0 }
     })
     return this.finishTransaction()
   }
 }
 
-function clientInventoryTest() {
+function clientInventoryTest () {
   const clientInventory = new ClientInventory()
   const serverInventory = new ServerInventory()
 
@@ -359,7 +369,7 @@ function clientInventoryTest() {
   // offhand
   openAll(['cursor', 'inventory', 'ui', 'armor', 'offhand', 'creative_output'])
 
-  function testTx() {
+  function testTx () {
     clientInventory.startTransactionGroup()
 
     assert.ok(clientInventory.creativeCreate(64, 'hotbar_and_inventory', 0, 32)) // Create an item.
@@ -384,7 +394,7 @@ function clientInventoryTest() {
     clientInventory.dump()
   }
 
-  async function testReplay() {
+  async function testReplay () {
     const rp = (await import('./replay.js')).replay
     console.log(rp)
     for (let i = 0; i < rp.length; i++) {

@@ -9,6 +9,7 @@
 </head>
 
 <body>
+  Window
   <select name="" id="active-win" onchange="updateWin()">
     <option value="PlayerWin">Survival inv</option>
     <option value="CreativeWin">Creative win</option>
@@ -25,7 +26,20 @@
     <option value="HotbarWin">Hotbar</option>
   </select>
 
-  <input type="checkbox" onchange="globalThis.TESTING = !globalThis.TESTING"> Randomize items
+  <input type="checkbox" onchange="toggleTesting()"> Randomize items
+  <input type="checkbox" onchange="toggleAnimations()"> Test animation loop
+
+  &bull; Scale
+  <select name="scale" id="scale" onchange="setScale(this.value)">
+    <option value="2">2</option>
+    <option value="2.5">2.5</option>
+    <option value="3" selected="selected">3</option>
+    <option value="3.5">3.5</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+  </select>
+
+  <hr />
 
   <div>
     <canvas id="demo" width="1000" height="1000"></canvas>
