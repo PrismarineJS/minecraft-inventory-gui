@@ -1,6 +1,6 @@
 {
   "name": "minecraft-inventory-gui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Render Minecraft inventory GUIs in the browser",
   "main": "index.mjs",
   "directories": {
