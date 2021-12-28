@@ -10,22 +10,23 @@
   "scripts": {
     "test": "npm run lint",
     "lint": "standard --env browser",
-    "fix": "standard --env browser --fix"
+    "fix": "standard --env browser --fix",
+    "prepublishOnly": "cp docs/README.md README.md"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/extremeheat/minecraft-inventory-gui.git"
+    "url": "git+https://github.com/PrismarineJS/minecraft-inventory-gui.git"
   },
   "keywords": [
     "minecraft",
     "inventory"
   ],
   "author": "extremeheat",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/extremeheat/minecraft-inventory-gui/issues"
+    "url": "https://github.com/PrismarineJS/minecraft-inventory-gui/issues"
   },
-  "homepage": "https://github.com/extremeheat/minecraft-inventory-gui#readme",
+  "homepage": "https://github.com/PrismarineJS/minecraft-inventory-gui#readme",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "standard": "^16.0.4"
